@@ -16,6 +16,13 @@ uses
 
 type
   TfMainForm = class(TForm)
+    shpHeader: TShape;
+    imgLogo: TImage;
+    lblTitle: TLabel;
+    lblTitleShadow: TLabel;
+    lblVersion: TLabel;
+    lblCopyright: TLabel;
+    bvlHeader: TBevel;
     lbEntries: TListBox;
     gbEntryDetails: TGroupBox;
     lblEntries: TLabel;
@@ -28,7 +35,7 @@ type
     N1: TMenuItem;
     pm_entry_Rename: TMenuItem;
     N2: TMenuItem;
-    pm_entry_ChangePswd: TMenuItem;
+    pm_entry_ChangePswd: TMenuItem;  
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
@@ -56,6 +63,14 @@ implementation
 uses
   WinFileInfo,
   PromptForm, GeneratorForm;
+
+{$IF defined(CPU64) or defined(CPU64BITS)}
+  {$DEFINE 64bit}
+{$ELSEIF defined(CPU16)}
+  {$MESSAGE FATAL 'Unsupported CPU.'}
+{$ELSE}
+  {$DEFINE 32bit}
+{$IFEND}
 
 {$R *.dfm}
 
@@ -100,14 +115,19 @@ Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
 Unlocked := False;
-// copyright info
+// Load copyright info
 with TWinFileInfo.Create(WFI_LS_VersionInfoAndFFI) do
 try
   If VersionInfoTranslationCount > 0 then
-    sbStatusBar.Panels[1].Text := Format('%s %s, %s',
-     [VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductName'],
-      VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductVersion'],
-      VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'LegalCopyright']]);
+    begin
+      lblTitle.Caption := VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductName'];
+      lblTitleShadow.Caption := lblTitle.Caption;
+      with VersionInfoFixedFileInfoDecoded.FileVersionMembers do
+        lblVersion.Caption := Format('Version of the program: %d.%d.%d %s%s #%d%s',[Major,Minor,Release,
+                                     {$IFDEF FPC}'L'{$ELSE}'D'{$ENDIF},{$IFDEF 64bit}'64'{$ELSE}'32'{$ENDIF},
+                                     Build,{$IFDEF Debug}' debug'{$ELSE}''{$ENDIF}]);
+      lblCopyright.Caption := Format('%s, all rights reserved',[VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'LegalCopyright']]);
+    end;
 finally
   Free;
 end;
