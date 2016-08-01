@@ -509,8 +509,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.2841438"
-     inkscape:cx="290.8863"
-     inkscape:cy="197.91131"
+     inkscape:cx="172.13013"
+     inkscape:cy="197.13258"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -654,9 +654,9 @@
        style="opacity:1;fill:url(#linearGradient4349);fill-opacity:1;stroke:none;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <g
        id="g4556"
-       transform="matrix(0.21565171,-0.97647034,0.97647034,0.21565171,-712.10138,897.76245)"
-       inkscape:export-xdpi="128.95169"
-       inkscape:export-ydpi="128.95169">
+       transform="matrix(0.21565171,-0.97647034,0.97647034,0.21565171,-674.7224,897.76245)"
+       inkscape:export-xdpi="129.06795"
+       inkscape:export-ydpi="129.06795">
       <path
          inkscape:connector-curvature="0"
          id="path4502"
@@ -719,8 +719,8 @@
     <g
        id="g4569"
        transform="matrix(0.8008932,-0.59880721,0.59880721,0.8008932,-478.42288,349.88403)"
-       inkscape:export-xdpi="128.95169"
-       inkscape:export-ydpi="128.95169">
+       inkscape:export-xdpi="129.06795"
+       inkscape:export-ydpi="129.06795">
       <path
          style="opacity:1;fill:url(#linearGradient4524);fill-opacity:1;stroke:#ababab;stroke-width:1.62292802;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 261.87572,719.97987 0,5.18999 -151.26513,0 -30.52605,30.82929 30.52605,30.82824 22.50862,-22.0247 22.50861,22.0247 22.50862,-11.9786 22.50756,11.9786 22.50862,-21.63904 22.50861,21.63904 16.21449,0 0,5.69715 28.4435,0 0,-5.69715 0.35924,0 0,-61.65753 -0.35924,0 0,-5.18999 -28.4435,0 z"

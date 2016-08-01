@@ -28,6 +28,10 @@ type
     lblEntries: TLabel;
     sbStatusBar: TStatusBar;
     oXPManifest: TXPManifest;
+    leSearchFor: TLabeledEdit;
+    btnFindPrev: TButton;
+    btnFindNext: TButton;
+    cbCaseSensitive: TCheckBox;    
     frmEntryFrame: TfrmEntryFrame;
     pmEntries: TPopupMenu;
     pm_entry_Add: TMenuItem;
@@ -35,16 +39,24 @@ type
     N1: TMenuItem;
     pm_entry_Rename: TMenuItem;
     N2: TMenuItem;
-    pm_entry_ChangePswd: TMenuItem;  
+    pm_entry_ChangePswd: TMenuItem;
+    cbSearchHistory: TCheckBox;
+    pm_entry_FindNext: TMenuItem;
+    N3: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
+    procedure lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormDestroy(Sender: TObject);
     procedure pmEntriesPopup(Sender: TObject);
     procedure pm_entry_AddClick(Sender: TObject);
     procedure pm_entry_RemoveClick(Sender: TObject);
     procedure pm_entry_RenameClick(Sender: TObject);
+    procedure pm_entry_FindNextClick(Sender: TObject);
     procedure pm_entry_ChangePswdClick(Sender: TObject);
+    procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFindPrevClick(Sender: TObject);
+    procedure btnFindNextClick(Sender: TObject);
   private
     { Private declarations }
   protected
@@ -173,10 +185,25 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TfMainForm.lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Index:  Integer;
+begin
+Index := lbEntries.ItemAtPos(Point(X,Y),True);
+If Index >= 0 then
+  begin
+    lbEntries.ItemIndex := Index;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.pmEntriesPopup(Sender: TObject);
 begin
 pm_entry_Remove.Enabled := lbEntries.ItemIndex >= 0;
 pm_entry_Rename.Enabled := lbEntries.ItemIndex >= 0;
+pm_entry_FindNext.Enabled := leSearchFor.Text <> '';
 end;
 
 //------------------------------------------------------------------------------
@@ -235,7 +262,14 @@ If lbEntries.ItemIndex >= 0 then
       frmEntryFrame.lblName.Caption := OutStr;
     end;
 end;
- 
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
+begin
+btnFindNext.OnClick(nil);
+end;
+
 //------------------------------------------------------------------------------
 
 procedure TfMainForm.pm_entry_ChangePswdClick(Sender: TObject);
@@ -244,6 +278,53 @@ var
 begin
 If fPromptForm.ShowPrompt('Master password','New master password:',Manager.MasterPassword,OutStr,True) then
   Manager.MasterPassword := OutStr;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.leSearchForKeyPress(Sender: TObject; var Key: Char);
+begin
+If Key = #13 then
+  begin
+    btnFindNext.OnClick(nil);
+    Key := #0;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.btnFindPrevClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,True,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end
+    else Beep;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.btnFindNextClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,False,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end
+    else Beep;
+end;
 end;
 
 end.

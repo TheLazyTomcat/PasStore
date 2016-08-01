@@ -73,6 +73,8 @@ type
     procedure DeleteEntry(Index: Integer); virtual;
     Function Load: Boolean; virtual;
     procedure Save; virtual;
+    Function Find(const SubString: String; FromEntry: Integer = 0; Backward: Boolean = False;
+                  CaseSensitive: Boolean = False; SearchHistory: Boolean = False): Integer; virtual;
     property EntriesPtr[Index: Integer]: PPSTEntry read GetEntryPtr;
     property Entries[Index: Integer]: TPSTEntry read GetEntry write SetEntry; default;
   published
@@ -440,6 +442,80 @@ try
 finally
   WorkStream.Free;
 end;
+end;
+
+//------------------------------------------------------------------------------
+
+Function TPSTManager.Find(const SubString: String; FromEntry: Integer = 0; Backward: Boolean = False;
+                          CaseSensitive: Boolean = False; SearchHistory: Boolean = False): Integer;
+var
+  i:      Integer;
+  Index:  Integer;
+
+  Function SearchEntry(EntryIndex: Integer): Boolean;
+
+    Function LocalCompare(const Str1,Str2: String): Boolean;
+    begin
+      If CaseSensitive then
+        Result := AnsiContainsStr(Str1,Str2)
+      else
+        Result := AnsiContainsText(Str1,Str2);
+    end;
+
+  var
+    ii: Integer;
+  begin
+    Result := LocalCompare(fEntries[EntryIndex].Name,SubString) or
+              LocalCompare(fEntries[EntryIndex].Address,SubString) or
+              LocalCompare(fEntries[EntryIndex].Notes,SubString) or
+              LocalCompare(fEntries[EntryIndex].Password,SubString);
+    If SearchHistory and not Result then
+      For ii := Low(fEntries[EntryIndex].History) to High (fEntries[EntryIndex].History) do
+        If LocalCompare(fEntries[EntryIndex].History[ii].Password,SubString) then
+          begin
+            Result := True;
+            Break{For ii};
+          end;
+  end;
+
+  Function WrapIndex(Idx: Integer): Integer;
+  begin
+    Result := FromEntry + Idx;
+    while Result > High(fEntries) do
+      Dec(Result,Length(fEntries));
+    while Result < Low(fEntries) do
+      Inc(Result,Length(fEntries));
+  end;
+
+begin
+Result := -1;
+If ValidIndex(FromEntry) then
+  If Backward then
+    begin
+      FromEntry := WrapIndex(-1);
+      For i := High(fEntries) downto Low(fEntries) do
+        begin
+          Index := WrapIndex(i);
+          If SearchEntry(Index) then
+            begin
+              Result := Index;
+              Break{For i};
+            end;        
+        end;
+    end
+  else
+    begin
+      FromEntry := WrapIndex(1);
+      For i := Low(fEntries) to High(fEntries) do
+        begin
+          Index := WrapIndex(i);
+          If SearchEntry(Index) then
+            begin
+              Result := Index;
+              Break{For i};
+            end;
+        end;
+  end;
 end;
 
 end.
