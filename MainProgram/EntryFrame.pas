@@ -107,7 +107,8 @@ end;
 
 procedure TfrmEntryFrame.btnOpenClick(Sender: TObject);
 begin
-ShellExecute(0,'open',PChar(LocalEntry.Address),nil,nil,SW_SHOWNORMAL);
+If leAddress.Text <> '' then
+  ShellExecute(0,'open',PChar(leAddress.Text),nil,nil,SW_SHOWNORMAL);
 end;
 
 //------------------------------------------------------------------------------
