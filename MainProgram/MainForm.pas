@@ -12,7 +12,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, ExtCtrls, StdCtrls, XPMan, EntryFrame, Menus,
-  PST_Manager;
+  PST_Manager, ActnList;
 
 type
   TfMainForm = class(TForm)
@@ -43,6 +43,9 @@ type
     cbSearchHistory: TCheckBox;
     pm_entry_FindNext: TMenuItem;
     N3: TMenuItem;
+    actlActionList: TActionList;
+    actSearchShortcut: TAction;
+    tmrAnimTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
@@ -57,11 +60,16 @@ type
     procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
     procedure btnFindPrevClick(Sender: TObject);
     procedure btnFindNextClick(Sender: TObject);
+    procedure actSearchShortcutExecute(Sender: TObject);
+    procedure tmrAnimTimerTimer(Sender: TObject);
   private
-    { Private declarations }
+    // animations counters
+    acntNothingFound: Integer;
+    acntSearching:    Integer;
   protected
     Unlocked: Boolean;
     Manager:  TPSTManager;
+    procedure RunAnimation(ID: Integer);
   public
     { Public declarations }
     procedure AskForMasterPassword;
@@ -73,7 +81,7 @@ var
 implementation
 
 uses
-  WinFileInfo,
+  WinFileInfo, BitOps,
   PromptForm, GeneratorForm;
 
 {$IF defined(CPU64) or defined(CPU64BITS)}
@@ -85,6 +93,31 @@ uses
 {$IFEND}
 
 {$R *.dfm}
+
+const
+  ANIM_NOTHINGFOUND = 1;
+  ANIM_SEARCHING    = 2;
+
+procedure TfMainForm.RunAnimation(ID: Integer);
+begin
+case ID of
+  ANIM_NOTHINGFOUND:
+      begin
+        acntNothingFound := 15;
+        leSearchFor.Color := clRed;
+        sbStatusBar.Panels[1].Text := 'Nothing found';
+        Beep;
+      end;
+  ANIM_SEARCHING:
+      begin
+        acntSearching := 5;
+        leSearchFor.Color := clYellow;
+      end;
+end;
+tmrAnimTimer.Enabled := True;
+end;
+
+//------------------------------------------------------------------------------
 
 procedure TfMainForm.AskForMasterPassword;
 var
@@ -126,6 +159,8 @@ Manager := TPSTManager.Create;
 Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
+acntNothingFound := 0;
+acntSearching := 0;
 Unlocked := False;
 // Load copyright info
 with TWinFileInfo.Create(WFI_LS_VersionInfoAndFFI) do
@@ -305,7 +340,7 @@ If leSearchFor.Text <> '' then
         lbEntries.ItemIndex := Index;
         lbEntries.OnClick(nil);
       end
-    else Beep;
+    else RunAnimation(ANIM_NOTHINGFOUND);
   end;
 end;
 
@@ -323,8 +358,41 @@ If leSearchFor.Text <> '' then
         lbEntries.ItemIndex := Index;
         lbEntries.OnClick(nil);
       end
-    else Beep;
+    else RunAnimation(ANIM_NOTHINGFOUND);
 end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.actSearchShortcutExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not leSearchFor.Focused then
+  begin
+    leSearchFor.SetFocus;
+    leSearchFor.SelectAll;
+    RunAnimation(ANIM_SEARCHING);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
+
+  Function DecGet(var Value: Integer): Integer;
+  begin
+    Result := Value;
+    If Value > 0 then
+      Dec(Value);
+  end;
+
+begin
+case DecGet(acntNothingFound) of
+  14: leSearchFor.Color := clWindow;
+   1: sbStatusBar.Panels[1].Text := '';
+end;
+If DecGet(acntSearching) = 1 then
+  leSearchFor.Color := clWindow;
+tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
 end;
 
 end.

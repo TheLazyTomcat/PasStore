@@ -13701,11 +13701,11 @@ object fMainForm: TfMainForm
     TabOrder = 5
   end
   object oXPManifest: TXPManifest
-    Left = 616
+    Left = 552
   end
   object pmEntries: TPopupMenu
     OnPopup = pmEntriesPopup
-    Left = 648
+    Left = 584
     object pm_entry_Add: TMenuItem
       Caption = 'Add new...'
       ShortCut = 45
@@ -13740,5 +13740,19 @@ object fMainForm: TfMainForm
       ShortCut = 16464
       OnClick = pm_entry_ChangePswdClick
     end
+  end
+  object actlActionList: TActionList
+    Left = 616
+    object actSearchShortcut: TAction
+      Caption = 'actSearchShortcut'
+      ShortCut = 16454
+      OnExecute = actSearchShortcutExecute
+    end
+  end
+  object tmrAnimTimer: TTimer
+    Enabled = False
+    Interval = 50
+    OnTimer = tmrAnimTimerTimer
+    Left = 648
   end
 end
