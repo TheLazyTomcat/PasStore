@@ -16,6 +16,7 @@ object fMainForm: TfMainForm
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lblEntries: TLabel
@@ -67,6 +68,7 @@ object fMainForm: TfMainForm
         Width = 100
       end
       item
+        Alignment = taRightJustify
         Width = 50
       end>
   end
@@ -99,6 +101,7 @@ object fMainForm: TfMainForm
     end
     object pm_entry_ChangePswd: TMenuItem
       Caption = 'Change master password...'
+      ShortCut = 16464
       OnClick = pm_entry_ChangePswdClick
     end
   end

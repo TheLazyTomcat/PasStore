@@ -1,3 +1,10 @@
+{-------------------------------------------------------------------------------
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-------------------------------------------------------------------------------}
 unit PromptForm;
 
 interface
@@ -11,14 +18,16 @@ type
     lePrompt: TLabeledEdit;
     btnAccept: TButton;
     btnCancel: TButton;
+    btnGenerator: TButton;
     procedure FormShow(Sender: TObject);    
-    procedure lePromptKeyPress(Sender: TObject; var Key: Char);    
+    procedure lePromptKeyPress(Sender: TObject; var Key: Char);
+    procedure btnGeneratorClick(Sender: TObject);
     procedure btnAcceptClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
   private
     PromptResult: Boolean;
   public
-    Function ShowPrompt(const Caption, Prompt, DefaultText, AcceptBtn, CancelBtn: String; var Output: String): Boolean;
+    Function ShowPrompt(const Caption, Prompt, DefaultText: String; var Output: String; Generator: Boolean = False): Boolean;
   end;
 
 var
@@ -28,13 +37,15 @@ implementation
 
 {$R *.dfm}
 
-Function TfPromptForm.ShowPrompt(const Caption, Prompt, DefaultText, AcceptBtn, CancelBtn: String; var Output: String): Boolean;
+uses
+  GeneratorForm;
+
+Function TfPromptForm.ShowPrompt(const Caption, Prompt, DefaultText: String; var Output: String; Generator: Boolean = False): Boolean;
 begin
 Self.Caption := Caption;
 lePrompt.EditLabel.Caption := Prompt;
 lePrompt.Text := DefaultText;
-btnAccept.Caption := AcceptBtn;
-btnCancel.Caption := CancelBtn;
+btnGenerator.Visible := Generator;
 PromptResult := False;
 ShowModal;
 Result := PromptResult;
@@ -60,6 +71,16 @@ If Key = #13 then
     btnAccept.OnClick(nil);
     Key := #0;
   end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfPromptForm.btnGeneratorClick(Sender: TObject);
+var
+  GeneratoedText: String;
+begin
+If fGeneratorForm.GeneratorPrompt(GeneratoedText) then
+  lePrompt.Text := GeneratoedText;
 end;
 
 //------------------------------------------------------------------------------

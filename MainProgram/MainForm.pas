@@ -1,3 +1,10 @@
+{-------------------------------------------------------------------------------
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-------------------------------------------------------------------------------}
 unit MainForm;
 
 interface
@@ -23,6 +30,7 @@ type
     N2: TMenuItem;
     pm_entry_ChangePswd: TMenuItem;
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pmEntriesPopup(Sender: TObject);
@@ -33,9 +41,11 @@ type
   private
     { Private declarations }
   protected
+    Unlocked: Boolean;
     Manager:  TPSTManager;
   public
     { Public declarations }
+    procedure AskForMasterPassword;
   end;
 
 var
@@ -43,21 +53,72 @@ var
 
 implementation
 
-uses PromptForm;
+uses
+  WinFileInfo,
+  PromptForm, GeneratorForm;
 
 {$R *.dfm}
 
-procedure TfMainForm.FormCreate(Sender: TObject);
+procedure TfMainForm.AskForMasterPassword;
 var
-  i:  Integer;
+  PromptPos:  TPosition;
+  GenPos:     TPosition;
+  Pswd:       String;
+begin
+PromptPos := fPromptForm.Position;
+GenPos := fGeneratorForm.Position;
+try
+  fPromptForm.Position := poScreenCenter;
+  fGeneratorForm.Position := poScreenCenter;
+  If fPromptForm.ShowPrompt('Enter master password','Master password:','',Pswd,True) then
+    begin
+      Manager.MasterPassword := Pswd;
+      If FileExists(Manager.FileName) then
+        If not Manager.Load then
+          begin
+            MessageDlg('Wrong master password.',mtError,[mbOk],0);
+            Close;
+            Exit;
+          end;
+      Application.ShowMainForm := True;
+      Unlocked := True;
+    end
+  else Close;
+finally
+  fGeneratorForm.Position := GenPos; 
+  fPromptForm.Position := PromptPos;
+end;
+end;
+
+//==============================================================================
+
+procedure TfMainForm.FormCreate(Sender: TObject);
 begin
 sbStatusBar.DoubleBuffered := True;
 Manager := TPSTManager.Create;
 Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
-Manager.MasterPassword := 'password';
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
-Manager.Load;
+Unlocked := False;
+// copyright info
+with TWinFileInfo.Create(WFI_LS_VersionInfoAndFFI) do
+try
+  If VersionInfoTranslationCount > 0 then
+    sbStatusBar.Panels[1].Text := Format('%s %s, %s',
+     [VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductName'],
+      VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductVersion'],
+      VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'LegalCopyright']]);
+finally
+  Free;
+end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.FormShow(Sender: TObject);
+var
+  i:  Integer;
+begin
 For i := 0 to Pred(Manager.EntryCount) do
   lbEntries.Items.Add(Manager[i].Name);
 If lbEntries.Count > 0 then
@@ -71,8 +132,11 @@ end;
 
 procedure TfMainForm.FormDestroy(Sender: TObject);
 begin
-Manager.CurrentEntryIdx := -2;
-Manager.Save;
+If Unlocked then
+  begin
+    Manager.CurrentEntryIdx := -2;
+    Manager.Save;
+  end;
 Manager.Free;
 end;
 
@@ -95,11 +159,13 @@ pm_entry_Remove.Enabled := lbEntries.ItemIndex >= 0;
 pm_entry_Rename.Enabled := lbEntries.ItemIndex >= 0;
 end;
 
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.pm_entry_AddClick(Sender: TObject);
 var
   OutStr: String;
 begin
-If fPromptForm.ShowPrompt('Add new entry','Entry name:','','Accept','Cancel',OutStr) then
+If fPromptForm.ShowPrompt('Add new entry','Entry name:','',OutStr) then
   begin
     lbEntries.Items.Add(OutStr);
     Manager.AddEntry(OutStr);
@@ -107,6 +173,8 @@ If fPromptForm.ShowPrompt('Add new entry','Entry name:','','Accept','Cancel',Out
     lbEntries.OnClick(nil);
   end;
 end;
+
+//------------------------------------------------------------------------------
 
 procedure TfMainForm.pm_entry_RemoveClick(Sender: TObject);
 var
@@ -131,13 +199,15 @@ If lbEntries.ItemIndex >= 0 then
       Manager.DeleteEntry(OldIdx);
     end;
 end;
+ 
+//------------------------------------------------------------------------------
 
 procedure TfMainForm.pm_entry_RenameClick(Sender: TObject);
 var
   OutStr: String;
 begin
 If lbEntries.ItemIndex >= 0 then
-  If fPromptForm.ShowPrompt('Rename entry','New entry name:',Manager[lbEntries.ItemIndex].Name,'Accept','Cancel',OutStr) then
+  If fPromptForm.ShowPrompt('Rename entry','New entry name:',Manager[lbEntries.ItemIndex].Name,OutStr) then
     begin
       Manager.EntriesPtr[lbEntries.ItemIndex]^.Name := OutStr;
       lbEntries.Items[lbEntries.ItemIndex] := OutStr;
@@ -145,12 +215,14 @@ If lbEntries.ItemIndex >= 0 then
       frmEntryFrame.lblName.Caption := OutStr;
     end;
 end;
+ 
+//------------------------------------------------------------------------------
 
 procedure TfMainForm.pm_entry_ChangePswdClick(Sender: TObject);
 var
   OutStr: String;
 begin
-If fPromptForm.ShowPrompt('Master password','New master password:',Manager.MasterPassword,'Accept','Cancel',OutStr) then
+If fPromptForm.ShowPrompt('Master password','New master password:',Manager.MasterPassword,OutStr,True) then
   Manager.MasterPassword := OutStr;
 end;
 

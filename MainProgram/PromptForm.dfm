@@ -32,8 +32,8 @@ object fPromptForm: TfPromptForm
     Top = 56
     Width = 81
     Height = 25
-    Caption = 'btnAccept'
-    TabOrder = 1
+    Caption = 'Accept'
+    TabOrder = 2
     OnClick = btnAcceptClick
   end
   object btnCancel: TButton
@@ -41,8 +41,17 @@ object fPromptForm: TfPromptForm
     Top = 56
     Width = 81
     Height = 25
-    Caption = 'btnCancel'
-    TabOrder = 2
+    Caption = 'Cancel'
+    TabOrder = 3
     OnClick = btnCancelClick
+  end
+  object btnGenerator: TButton
+    Left = 8
+    Top = 56
+    Width = 81
+    Height = 25
+    Caption = 'Generate...'
+    TabOrder = 1
+    OnClick = btnGeneratorClick
   end
 end

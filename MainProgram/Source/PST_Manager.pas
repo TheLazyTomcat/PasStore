@@ -1,9 +1,22 @@
+{-------------------------------------------------------------------------------
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-------------------------------------------------------------------------------}
 unit PST_Manager;
 
 interface
 
 uses
   Classes;
+
+{==============================================================================}
+{------------------------------------------------------------------------------}
+{                                  TPSTManager                                 }
+{------------------------------------------------------------------------------}
+{==============================================================================}
 
 type
   TPSTEntryHistoryItem = record
@@ -26,6 +39,10 @@ type
   TPSTList = array of TPSTEntry;
 
   TPSTEntryEvent = procedure(Sender: TObject; Entry: PPSTEntry) of object;
+
+{==============================================================================}
+{   TPSTManager - declaration                                                  }
+{==============================================================================}
 
   TPSTManager = class(TObject)
   private
@@ -71,9 +88,14 @@ type
 implementation
 
 uses
-  AuxTypes, BinaryStreaming, SimpleCompress,
-  MD5, SHA2, SHA3, AES,
+  AuxTypes, BinaryStreaming, SimpleCompress, MD5, SHA2, SHA3, AES,
   SysUtils, StrUtils;
+
+{==============================================================================}
+{------------------------------------------------------------------------------}
+{                                  TPSTManager                                 }
+{------------------------------------------------------------------------------}
+{==============================================================================}
 
 {-------------------------------------------------------------------------------
 
@@ -109,7 +131,13 @@ const
   PST_FileSignature  = UInt32($72745350);
   PST_EntrySignature = UInt32($FFFA0102);
 
-//******************************************************************************  
+{==============================================================================}
+{   TPSTManager - implementation                                               }
+{==============================================================================}
+
+{------------------------------------------------------------------------------}
+{   TPSTManager - private methods                                              }
+{------------------------------------------------------------------------------}
 
 Function TPSTManager.GetEntryCount: Integer;
 begin
@@ -179,7 +207,9 @@ else
   raise Exception.CreateFmt('TPSTManager.GetCurrentEntry: Index (%d) out of bounds.',[fCurrentEntryIdx]);
 end;
 
-//==============================================================================
+{------------------------------------------------------------------------------}
+{   TPSTManager - protected methods                                            }
+{------------------------------------------------------------------------------}
 
 Function TPSTManager.ValidIndex(Idx: Integer): Boolean;
 begin
@@ -193,10 +223,14 @@ var
   Pswd: UTF8String;
   Temp: TSHA2Hash;
 begin
+{$IFDEF Unicode}
+Pswd := UTF8Encode(fMasterPassword);
+{$ELSE}
 Pswd := AnsiToUTF8(fMasterPassword);
-Move(StringSHA3(Keccak_b,Pswd,160).HashData[0],InitVec,20);
-Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(StringMD5(Pswd))));
-Temp := BufferSHA2(sha512_224,StringSHA3(SHAKE256,Pswd,1024).HashData[0],128);
+{$ENDIF}
+Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],InitVec,20);
+Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(AnsiStringMD5(Pswd))));
+Temp := BufferSHA2(sha512_224,AnsiStringSHA3(SHAKE256,Pswd,1024).HashData[0],128);
 Move(Temp.Hash512_224,Key,28);
 end;
 
@@ -255,8 +289,9 @@ Stream.Position := 0;
 ZDecompressStream(Stream);
 end;
 
-//==============================================================================
-
+{------------------------------------------------------------------------------}
+{   TPSTManager - public methods                                               }
+{------------------------------------------------------------------------------}
 
 constructor TPSTManager.Create;
 begin
@@ -353,9 +388,9 @@ try
                     ReadBuffer(fEntries[i].History[j].Time,SizeOf(TDateTime));
                     ReadString(fEntries[i].History[j].Password);
                   end;
-                Result := True;  
               end
             else raise Exception.Create('Wrong entry signature.');
+          Result := True;  
         end;
     finally
       Free;

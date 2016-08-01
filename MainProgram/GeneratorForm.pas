@@ -1,3 +1,10 @@
+{-------------------------------------------------------------------------------
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-------------------------------------------------------------------------------}
 unit GeneratorForm;
 
 interface
@@ -70,7 +77,7 @@ end;
 
 procedure TfGeneratorForm.btnGenerateClick(Sender: TObject);
 var
-  Str:      UTF8String;
+  Seed:     UTF8String;
   MD2Temp:  TMD2Hash;
   MD4Temp:  TMD4Hash;
   MD5Temp:  TMD5Hash;
@@ -102,63 +109,67 @@ var
   end;
 
 begin
-Str := AnsiToUTF8(leSeed.Text);
+{$IFDEF Unicode}
+Seed := UTF8Encode(leSeed.Text);
+{$ELSE}
+Seed := AnsiToUTF8(leSeed.Text);
+{$ENDIF}
 case cbMethod.ItemIndex of
   0:  begin
-        MD2Temp := BinaryCorrectMD2(StringMD2(Str));
+        MD2Temp := BinaryCorrectMD2(StringMD2(Seed));
         leResult.Text := EncodeHash(MD2Temp,SizeOf(TMD2Hash));
       end;
   1:  begin
-        MD4Temp := BinaryCorrectMD4(StringMD4(Str));
+        MD4Temp := BinaryCorrectMD4(StringMD4(Seed));
         leResult.Text := EncodeHash(MD4Temp,SizeOf(TMD4Hash));
       end;
   2:  begin
-        MD5Temp := BinaryCorrectMD5(StringMD5(Str));
+        MD5Temp := BinaryCorrectMD5(StringMD5(Seed));
         leResult.Text := EncodeHash(MD5Temp,SizeOf(TMD5Hash));
       end;
   3:  begin
-        SHA0Temp := BinaryCorrectSHA0(StringSHA0(Str));
+        SHA0Temp := BinaryCorrectSHA0(StringSHA0(Seed));
         leResult.Text := EncodeHash(SHA0Temp,SizeOf(TSHA0Hash));
       end;
   4:  begin
-        SHA1Temp := BinaryCorrectSHA1(StringSHA1(Str));
+        SHA1Temp := BinaryCorrectSHA1(StringSHA1(Seed));
         leResult.Text := EncodeHash(SHA1Temp,SizeOf(TSHA1Hash));
       end;
   5:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha224,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha224,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash224,28);
       end;
   6:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha256,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha256,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash256,32);
       end;
   7:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha384,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha384,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash384,48);
       end;
   8:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512,64);
       end;
   9:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_224,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_224,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512_224,28);
       end;
   10: begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_256,Str));
+        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_256,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512_256,32);
       end;
-  11: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak224,Str)));
-  12: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak256,Str)));
-  13: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak384,Str)));
-  14: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak512,Str)));
-  15: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak_b,Str,seLength.Value)));
-  16: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_224,Str)));
-  17: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_256,Str)));
-  18: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_384,Str)));
-  19: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_512,Str)));
-  20: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE128,Str,seLength.Value)));
-  21: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE256,Str,seLength.Value)));
+  11: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak224,Seed)));
+  12: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak256,Seed)));
+  13: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak384,Seed)));
+  14: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak512,Seed)));
+  15: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak_b,Seed,seLength.Value)));
+  16: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_224,Seed)));
+  17: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_256,Seed)));
+  18: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_384,Seed)));
+  19: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_512,Seed)));
+  20: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE128,Seed,seLength.Value)));
+  21: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE256,Seed,seLength.Value)));
 end;
 end;
 
