@@ -13630,6 +13630,17 @@ object fMainForm: TfMainForm
       Font.Style = []
       ParentFont = False
       TabOrder = 0
+      inherited pnlMainPanel: TPanel
+        inherited btnOpen: TButton
+          Hint = 'Open address/url'
+          Caption = '8'
+          Font.Height = -15
+          Font.Name = 'Webdings'
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = True
+        end
+      end
     end
   end
   object sbStatusBar: TStatusBar
@@ -13664,7 +13675,13 @@ object fMainForm: TfMainForm
     Width = 16
     Height = 21
     Hint = 'Find previous'
-    Caption = '<'
+    Caption = '3'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'Webdings'
+    Font.Style = []
+    ParentFont = False
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
@@ -13676,7 +13693,13 @@ object fMainForm: TfMainForm
     Width = 16
     Height = 21
     Hint = 'Find next'
-    Caption = '>'
+    Caption = '4'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -15
+    Font.Name = 'Webdings'
+    Font.Style = []
+    ParentFont = False
     ParentShowHint = False
     ShowHint = True
     TabOrder = 3

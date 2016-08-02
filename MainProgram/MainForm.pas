@@ -103,7 +103,7 @@ begin
 case ID of
   ANIM_NOTHINGFOUND:
       begin
-        acntNothingFound := 15;
+        acntNothingFound := 20;
         leSearchFor.Color := clRed;
         sbStatusBar.Panels[1].Text := 'Nothing found';
         Beep;
@@ -260,25 +260,26 @@ end;
 
 procedure TfMainForm.pm_entry_RemoveClick(Sender: TObject);
 var
-  OldIdx: Integer;
+  OldIndex: Integer;
 begin
 If lbEntries.ItemIndex >= 0 then
   If MessageDlg(Format('Are you sure you want to delete entry "%s"?',[lbEntries.Items[lbEntries.ItemIndex]]),
                 mtConfirmation,[mbYes,mbNo],0) = mrYes then
     begin
-      OldIdx := lbEntries.ItemIndex;
-      If lbEntries.ItemIndex < Pred(lbEntries.Count) then
-        lbEntries.ItemIndex := lbEntries.ItemIndex + 1
+      OldIndex := lbEntries.ItemIndex;
+      Manager.CurrentEntryIdx := -2;
+      lbEntries.Items.Delete(OldIndex);
+      Manager.DeleteEntry(OldIndex); 
+      If OldIndex < lbEntries.Count then
+        lbEntries.ItemIndex := OldIndex
       else
         begin
-          If lbEntries.ItemIndex > 0 then
-            lbEntries.ItemIndex := lbEntries.ItemIndex - 1
+          If lbEntries.Count > 0 then
+            lbEntries.ItemIndex := Pred(lbEntries.Count)
           else
             lbEntries.ItemIndex := -1;
         end;
       lbEntries.OnClick(nil);
-      lbEntries.Items.Delete(OldIdx);
-      Manager.DeleteEntry(OldIdx);
     end;
 end;
  
@@ -378,7 +379,7 @@ end;
 
 procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
 
-  Function DecGet(var Value: Integer): Integer;
+  Function DecAndGet(var Value: Integer): Integer;
   begin
     Result := Value;
     If Value > 0 then
@@ -386,11 +387,11 @@ procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
   end;
 
 begin
-case DecGet(acntNothingFound) of
+case DecAndGet(acntNothingFound) of
   14: leSearchFor.Color := clWindow;
    1: sbStatusBar.Panels[1].Text := '';
 end;
-If DecGet(acntSearching) = 1 then
+If DecAndGet(acntSearching) = 1 then
   leSearchFor.Color := clWindow;
 tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
 end;

@@ -184,7 +184,8 @@ If Value <> fCurrentEntryIdx then
         If ValidIndex(fCurrentEntryIdx) then
           fOnEntrySet(Self,GetEntryPtr(fCurrentEntryIdx))
         else
-          fOnEntrySet(Self,nil)
+          If fCurrentEntryIdx >= -1 then
+            fOnEntrySet(Self,nil)
       end;
   end;
 end;
