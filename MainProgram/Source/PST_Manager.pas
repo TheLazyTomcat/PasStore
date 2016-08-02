@@ -71,10 +71,12 @@ type
     Function AddEntry(const Name: String): Integer; virtual;
     Function RemoveEntry(const Name: String): Integer; virtual;
     procedure DeleteEntry(Index: Integer); virtual;
+    procedure Exchange(Index1,Index2: Integer); virtual;
     Function Load: Boolean; virtual;
     procedure Save; virtual;
     Function Find(const SubString: String; FromEntry: Integer = 0; Backward: Boolean = False;
                   CaseSensitive: Boolean = False; SearchHistory: Boolean = False): Integer; virtual;
+    procedure Sort(Backward: Boolean = False); virtual;
     property EntriesPtr[Index: Integer]: PPSTEntry read GetEntryPtr;
     property Entries[Index: Integer]: TPSTEntry read GetEntry write SetEntry; default;
   published
@@ -361,6 +363,24 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TPSTManager.Exchange(Index1,Index2: Integer);
+var
+  TempEntry:  TPSTEntry;
+begin
+If ValidIndex(Index1) and ValidIndex(Index2) then
+  begin
+    If Index1 <> Index2 then
+      begin
+        TempEntry := fEntries[Index1];
+        fEntries[Index1] := fEntries[Index2];
+        fEntries[Index2] := TempEntry;
+      end;
+  end
+else raise Exception.CreateFmt('TPSTManager.Exchange: Invalid index (%d, %d).',[Index1,Index2]);
+end;
+
+//------------------------------------------------------------------------------
+
 Function TPSTManager.Load: Boolean;
 var
   WorkStream: TMemoryStream;
@@ -517,6 +537,43 @@ If ValidIndex(FromEntry) then
             end;
         end;
   end;
+end;
+
+//------------------------------------------------------------------------------
+
+{$message 'revisit'}
+procedure TPSTManager.Sort(Backward: Boolean = False);
+
+  Function CompareEntries(Idx1,Idx2: Integer): Integer;
+  begin
+    Result := AnsiCompareStr(fEntries[Idx2].Name,fEntries[Idx1].Name);
+    If Backward then
+      Result := (-1) * Result;
+  end;
+
+  procedure QuickSort(Left,Right: Integer);
+  var
+    i:    Integer;
+    Idx:  Integer;
+  begin
+    If Left < Right then
+      begin
+        Exchange((Left + Right) shr 1,Right);
+        Idx := Left;
+        For i := Left to Pred(Right) do
+          If CompareEntries(Right,i) < 0 then
+            begin
+              Exchange(i,idx);
+              Inc(Idx);
+            end;
+        Exchange(Idx,Right);
+        QuickSort(Left,Idx - 1);
+        QuickSort(Idx + 1, Right);
+      end;
+  end;
+
+begin
+QuickSort(Low(fEntries),High(fEntries));
 end;
 
 end.

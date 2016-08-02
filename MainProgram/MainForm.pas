@@ -39,10 +39,16 @@ type
     N1: TMenuItem;
     pm_entry_Rename: TMenuItem;
     N2: TMenuItem;
+    pm_entry_MoveUp: TMenuItem;
+    pm_entry_MoveDown: TMenuItem;
+    N3: TMenuItem;
+    pm_entry_SortFwd: TMenuItem;
+    pm_entry_SortRev: TMenuItem;
+    N4: TMenuItem;
+    pm_entry_FindNext: TMenuItem;
+    N5: TMenuItem;
     pm_entry_ChangePswd: TMenuItem;
     cbSearchHistory: TCheckBox;
-    pm_entry_FindNext: TMenuItem;
-    N3: TMenuItem;
     actlActionList: TActionList;
     actSearchShortcut: TAction;
     tmrAnimTimer: TTimer;
@@ -55,13 +61,17 @@ type
     procedure pm_entry_AddClick(Sender: TObject);
     procedure pm_entry_RemoveClick(Sender: TObject);
     procedure pm_entry_RenameClick(Sender: TObject);
+    procedure pm_entry_MoveUpClick(Sender: TObject);
+    procedure pm_entry_MoveDownClick(Sender: TObject);
+    procedure pm_entry_SortFwdClick(Sender: TObject);
+    procedure pm_entry_SortRevClick(Sender: TObject);
     procedure pm_entry_FindNextClick(Sender: TObject);
     procedure pm_entry_ChangePswdClick(Sender: TObject);
     procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
     procedure btnFindPrevClick(Sender: TObject);
     procedure btnFindNextClick(Sender: TObject);
     procedure actSearchShortcutExecute(Sender: TObject);
-    procedure tmrAnimTimerTimer(Sender: TObject);
+    procedure tmrAnimTimerTimer(Sender: TObject);  
   private
     // animations counters
     acntNothingFound: Integer;
@@ -178,6 +188,8 @@ try
 finally
   Free;
 end;
+pm_entry_MoveUp.ShortCut := ShortCut(VK_UP,[ssShift]);
+pm_entry_MoveDown.ShortCut := ShortCut(VK_DOWN,[ssShift]);
 end;
 
 //------------------------------------------------------------------------------
@@ -238,6 +250,10 @@ procedure TfMainForm.pmEntriesPopup(Sender: TObject);
 begin
 pm_entry_Remove.Enabled := lbEntries.ItemIndex >= 0;
 pm_entry_Rename.Enabled := lbEntries.ItemIndex >= 0;
+pm_entry_MoveUp.Enabled := lbEntries.ItemIndex > 0;
+pm_entry_MoveDown.Enabled := (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0);
+pm_entry_SortFwd.Enabled := lbEntries.Count > 1;
+pm_entry_SortRev.Enabled := lbEntries.Count > 1;
 pm_entry_FindNext.Enabled := leSearchFor.Text <> '';
 end;
 
@@ -297,6 +313,74 @@ If lbEntries.ItemIndex >= 0 then
       frmEntryFrame.LocalEntry.Name := OutStr;
       frmEntryFrame.lblName.Caption := OutStr;
     end;
+end;
+ 
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_MoveUpClick(Sender: TObject);
+var
+  OldIndex: Integer;
+begin
+If lbEntries.ItemIndex > 0 then
+  begin
+    OldIndex := lbEntries.ItemIndex;
+    Manager.CurrentEntryIdx := -2;
+    Manager.Exchange(OldIndex,OldIndex - 1);
+    lbEntries.Items.Exchange(OldIndex,OldIndex - 1);
+    lbEntries.ItemIndex := OldIndex - 1;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_MoveDownClick(Sender: TObject);
+var
+  OldIndex: Integer;
+begin
+If (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0) then
+  begin
+    OldIndex := lbEntries.ItemIndex;
+    Manager.CurrentEntryIdx := -2;
+    Manager.Exchange(OldIndex,OldIndex + 1);
+    lbEntries.Items.Exchange(OldIndex,OldIndex + 1);
+    lbEntries.ItemIndex := OldIndex + 1;
+    lbEntries.OnClick(nil);
+  end;
+end; 
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SortFwdClick(Sender: TObject);
+var
+  i:  Integer;
+begin
+If lbEntries.Count > 1 then
+  begin
+    Manager.CurrentEntryIdx := -2;
+    Manager.Sort(False);
+    For i := 0 to Pred(lbEntries.Count) do
+      lbEntries.Items[i] := Manager[i].Name;
+    lbEntries.ItemIndex := 0;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SortRevClick(Sender: TObject);
+var
+  i:  Integer;
+begin
+If lbEntries.Count > 1 then
+  begin
+    Manager.CurrentEntryIdx := -2;
+    Manager.Sort(True);
+    For i := 0 to Pred(lbEntries.Count) do
+      lbEntries.Items[i] := Manager[i].Name;
+    lbEntries.ItemIndex := 0;
+    lbEntries.OnClick(nil);
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -395,5 +479,6 @@ If DecAndGet(acntSearching) = 1 then
   leSearchFor.Color := clWindow;
 tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
 end;
+
 
 end.

@@ -13630,17 +13630,6 @@ object fMainForm: TfMainForm
       Font.Style = []
       ParentFont = False
       TabOrder = 0
-      inherited pnlMainPanel: TPanel
-        inherited btnOpen: TButton
-          Hint = 'Open address/url'
-          Caption = '8'
-          Font.Height = -15
-          Font.Name = 'Webdings'
-          ParentFont = False
-          ParentShowHint = False
-          ShowHint = True
-        end
-      end
     end
   end
   object sbStatusBar: TStatusBar
@@ -13747,7 +13736,29 @@ object fMainForm: TfMainForm
       ShortCut = 113
       OnClick = pm_entry_RenameClick
     end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object pm_entry_MoveUp: TMenuItem
+      Caption = 'Move up'
+      OnClick = pm_entry_MoveUpClick
+    end
+    object pm_entry_MoveDown: TMenuItem
+      Caption = 'Move down'
+      OnClick = pm_entry_MoveDownClick
+    end
     object N3: TMenuItem
+      Caption = '-'
+    end
+    object pm_entry_SortFwd: TMenuItem
+      Caption = 'Sort entries (A-Z)'
+      OnClick = pm_entry_SortFwdClick
+    end
+    object pm_entry_SortRev: TMenuItem
+      Caption = 'Sort entries (Z-A)'
+      OnClick = pm_entry_SortRevClick
+    end
+    object N4: TMenuItem
       Caption = '-'
     end
     object pm_entry_FindNext: TMenuItem
@@ -13755,7 +13766,7 @@ object fMainForm: TfMainForm
       ShortCut = 114
       OnClick = pm_entry_FindNextClick
     end
-    object N2: TMenuItem
+    object N5: TMenuItem
       Caption = '-'
     end
     object pm_entry_ChangePswd: TMenuItem

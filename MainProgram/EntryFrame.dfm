@@ -138,7 +138,13 @@ object frmEntryFrame: TfrmEntryFrame
       Top = 48
       Width = 25
       Height = 21
-      Caption = '>>'
+      Caption = '8'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'Webdings'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 1
       OnClick = btnOpenClick
     end
