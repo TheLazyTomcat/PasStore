@@ -7,12 +7,16 @@
 -------------------------------------------------------------------------------}
 unit MainForm;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ExtCtrls, StdCtrls, XPMan, EntryFrame, Menus,
-  PST_Manager, ActnList;
+  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs,
+  ComCtrls, ExtCtrls, StdCtrls, EntryFrame, Menus, ActnList, {$IFNDEF FPC}XPMan,{$ENDIF}
+  PST_Manager;
 
 type
   TfMainForm = class(TForm)
@@ -27,7 +31,9 @@ type
     gbEntryDetails: TGroupBox;
     lblEntries: TLabel;
     sbStatusBar: TStatusBar;
+  {$IFNDEF FPC}
     oXPManifest: TXPManifest;
+  {$ENDIF}
     leSearchFor: TLabeledEdit;
     btnFindPrev: TButton;
     btnFindNext: TButton;
@@ -55,7 +61,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
-    procedure lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure lbEntriesMouseDown(Sender: TObject; {%H-}Button: TMouseButton; {%H-}Shift: TShiftState; X, Y: Integer);
     procedure FormDestroy(Sender: TObject);
     procedure pmEntriesPopup(Sender: TObject);
     procedure pm_entry_AddClick(Sender: TObject);
@@ -73,7 +79,7 @@ type
     procedure actSearchShortcutExecute(Sender: TObject);
     procedure tmrAnimTimerTimer(Sender: TObject);  
   private
-    // animations counters
+    // animation counters
     acntNothingFound: Integer;
     acntSearching:    Integer;
   protected
@@ -91,8 +97,11 @@ var
 implementation
 
 uses
-  WinFileInfo, BitOps,
-  PromptForm, GeneratorForm;
+  WinFileInfo,
+  PromptForm, GeneratorForm
+{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+  , LazFileUtils, LazUTF8
+{$IFEND};
 
 {$IF defined(CPU64) or defined(CPU64BITS)}
   {$DEFINE 64bit}
@@ -102,7 +111,11 @@ uses
   {$DEFINE 32bit}
 {$IFEND}
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 const
   ANIM_NOTHINGFOUND = 1;
@@ -143,7 +156,11 @@ try
   If fPromptForm.ShowPrompt('Enter master password','Master password:','',Pswd,True) then
     begin
       Manager.MasterPassword := Pswd;
+    {$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+      If FileExistsUTF8(Manager.FileName) then
+    {$ELSE}
       If FileExists(Manager.FileName) then
+    {$IFEND}
         If not Manager.Load then
           begin
             MessageDlg('Wrong master password.',mtError,[mbOk],0);
@@ -166,7 +183,11 @@ procedure TfMainForm.FormCreate(Sender: TObject);
 begin
 sbStatusBar.DoubleBuffered := True;
 Manager := TPSTManager.Create;
+{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+Manager.FileName := ExtractFilePath(SysToUTF8(ParamStr(0))) + 'PasStore.dat';
+{$ELSE}
 Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
+{$IFEND}
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
 acntNothingFound := 0;
@@ -236,11 +257,14 @@ procedure TfMainForm.lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; S
 var
   Index:  Integer;
 begin
-Index := lbEntries.ItemAtPos(Point(X,Y),True);
-If Index >= 0 then
+If (Button = mbRight) and (Shift = [ssRight]) then
   begin
-    lbEntries.ItemIndex := Index;
-    lbEntries.OnClick(nil);
+    Index := lbEntries.ItemAtPos(Point(X,Y),True);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end;
   end;
 end;
 
@@ -479,6 +503,5 @@ If DecAndGet(acntSearching) = 1 then
   leSearchFor.Color := clWindow;
 tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
 end;
-
 
 end.

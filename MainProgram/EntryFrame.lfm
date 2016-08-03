@@ -1,0 +1,183 @@
+object frmEntryFrame: TfrmEntryFrame
+  Left = 0
+  Height = 457
+  Top = 0
+  Width = 360
+  ClientHeight = 457
+  ClientWidth = 360
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  ParentFont = False
+  TabOrder = 0
+  DesignLeft = 908
+  DesignTop = 175
+  object pnlMainPanel: TPanel
+    Left = 0
+    Height = 457
+    Top = 0
+    Width = 360
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 457
+    ClientWidth = 360
+    TabOrder = 0
+    object shpNameBackground: TShape
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 360
+      Pen.Style = psClear
+    end
+    object lblName: TLabel
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 360
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'lblName'
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      Layout = tlCenter
+      ParentColor = False
+      ParentFont = False
+    end
+    object lblHistory: TLabel
+      Left = 0
+      Height = 13
+      Top = 304
+      Width = 38
+      Caption = 'History:'
+      ParentColor = False
+    end
+    object lblNotes: TLabel
+      Left = 0
+      Height = 13
+      Top = 70
+      Width = 91
+      Caption = 'Description, notes:'
+      ParentColor = False
+    end
+    object bvlHorSplit: TBevel
+      Left = 0
+      Height = 9
+      Top = 222
+      Width = 360
+      Shape = bsTopLine
+    end
+    object meNotes: TMemo
+      Left = 0
+      Height = 129
+      Top = 86
+      Width = 360
+      ScrollBars = ssVertical
+      TabOrder = 2
+    end
+    object lvHistory: TListView
+      Left = 0
+      Height = 137
+      Top = 318
+      Width = 360
+      Columns = <      
+        item
+          Caption = 'Time of addition'
+          Width = 100
+        end      
+        item
+          Caption = 'Password'
+          Width = 235
+        end>
+      HideSelection = False
+      PopupMenu = pmHistoryMenu
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 6
+      ViewStyle = vsReport
+    end
+    object lePassword: TLabeledEdit
+      Left = 0
+      Height = 21
+      Top = 246
+      Width = 360
+      EditLabel.AnchorSideLeft.Control = lePassword
+      EditLabel.AnchorSideRight.Control = lePassword
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = lePassword
+      EditLabel.Left = 0
+      EditLabel.Height = 13
+      EditLabel.Top = 230
+      EditLabel.Width = 360
+      EditLabel.Caption = 'Password:'
+      EditLabel.ParentColor = False
+      TabOrder = 3
+    end
+    object leAddress: TLabeledEdit
+      Left = 0
+      Height = 21
+      Top = 46
+      Width = 336
+      EditLabel.AnchorSideLeft.Control = leAddress
+      EditLabel.AnchorSideRight.Control = leAddress
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = leAddress
+      EditLabel.Left = 0
+      EditLabel.Height = 13
+      EditLabel.Top = 30
+      EditLabel.Width = 336
+      EditLabel.Caption = 'Address/URL:'
+      EditLabel.ParentColor = False
+      TabOrder = 0
+    end
+    object btnAddToHistory: TButton
+      Left = 272
+      Height = 25
+      Top = 273
+      Width = 89
+      Caption = 'Add to history'
+      OnClick = btnAddToHistoryClick
+      TabOrder = 5
+    end
+    object btnGenerate: TButton
+      Left = 176
+      Height = 25
+      Top = 273
+      Width = 89
+      Caption = 'Generate...'
+      OnClick = btnGenerateClick
+      TabOrder = 4
+    end
+    object btnOpen: TButton
+      Left = 336
+      Height = 21
+      Top = 46
+      Width = 25
+      Caption = '8'
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'Webdings'
+      OnClick = btnOpenClick
+      ParentFont = False
+      TabOrder = 1
+    end
+  end
+  object pmHistoryMenu: TPopupMenu
+    OnPopup = pmHistoryMenuPopup
+    top = 272
+    object pm_hm_Remove: TMenuItem
+      Caption = 'Remove'
+      ShortCut = 46
+      OnClick = pm_hm_RemoveClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object pm_hm_Copy: TMenuItem
+      Caption = 'Copy password'
+      ShortCut = 16451
+      OnClick = pm_hm_CopyClick
+    end
+  end
+end

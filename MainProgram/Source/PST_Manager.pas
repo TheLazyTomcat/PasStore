@@ -61,7 +61,7 @@ type
     procedure SetCurrentEntry(Value: TPSTEntry);
   protected
     Function ValidIndex(Idx: Integer): Boolean; virtual;
-    procedure GetKeyAndInitVector(var Key, InitVec); virtual;
+    procedure GetKeyAndInitVector(out Key, InitVec); virtual;
     procedure EncryptStream(Stream: TMemoryStream); virtual;
     procedure DecryptStream(Stream: TMemoryStream); virtual;
   public
@@ -79,12 +79,12 @@ type
     procedure Sort(Backward: Boolean = False); virtual;
     property EntriesPtr[Index: Integer]: PPSTEntry read GetEntryPtr;
     property Entries[Index: Integer]: TPSTEntry read GetEntry write SetEntry; default;
+    property CurrentEntry: TPSTEntry read GetCurrentEntry write SetCurrentEntry;
   published
     property EntryCount: Integer read GetEntryCount;
     property FileName: String read fFileName write fFileName;
     property MasterPassword: String read fMasterPassword write fMasterPassword;
     property CurrentEntryIdx: Integer read fCurrentEntryIdx write SetCurrentEntryIdx;
-    property CurrentEntry: TPSTEntry read GetCurrentEntry write SetCurrentEntry;
     property OnEntrySet: TPSTEntryEvent read fOnEntrySet write fOnEntrySet;
     property OnEntryGet: TPSTEntryEvent read fOnEntryGet write fOnEntryGet;
   end;
@@ -223,7 +223,7 @@ end;
  
 //------------------------------------------------------------------------------
 
-procedure TPSTManager.GetKeyAndInitVector(var Key, InitVec);
+procedure TPSTManager.GetKeyAndInitVector(out Key, InitVec);
 var
   Pswd: UTF8String;
   Temp: TSHA2Hash;
@@ -231,12 +231,16 @@ begin
 {$IFDEF Unicode}
 Pswd := UTF8Encode(fMasterPassword);
 {$ELSE}
+{$IFDEF FPC}
+Pswd := fMasterPassword;
+{$ELSE}
 Pswd := AnsiToUTF8(fMasterPassword);
 {$ENDIF}
-Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],InitVec,20);
+{$ENDIF}
+Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],{%H-}InitVec,20);
 Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(AnsiStringMD5(Pswd))));
 Temp := BufferSHA2(sha512_224,AnsiStringSHA3(SHAKE256,Pswd,1024).HashData[0],128);
-Move(Temp.Hash512_224,Key,28);
+Move(Temp.Hash512_224,{%H-}Key,28);
 end;
 
 //------------------------------------------------------------------------------

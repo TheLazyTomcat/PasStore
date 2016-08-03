@@ -10,8 +10,8 @@ unit EntryFrame;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
-  Dialogs, ExtCtrls, StdCtrls, ComCtrls, Menus,
+  SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, ExtCtrls,
+  StdCtrls, ComCtrls, Menus,
   PST_Manager;
 
 type
@@ -51,10 +51,17 @@ type
 
 implementation
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
-  ShellAPI, ClipBrd, GeneratorForm;
+  Windows, ShellAPI, ClipBrd, GeneratorForm
+{$IF Defined(FPC) and not Defined(Unicode)}
+  , LazUTF8
+{$IFEND};
 
 procedure TfrmEntryFrame.ListHistory;
 var
@@ -108,7 +115,11 @@ end;
 procedure TfrmEntryFrame.btnOpenClick(Sender: TObject);
 begin
 If leAddress.Text <> '' then
+{$IF Defined(FPC) and not Defined(Unicode)}
+  ShellExecute(0,'open',PChar(UTF8ToWinCP(leAddress.Text)),nil,nil,SW_SHOWNORMAL);
+{$ELSE}
   ShellExecute(0,'open',PChar(leAddress.Text),nil,nil,SW_SHOWNORMAL);
+{$IFEND}
 end;
 
 //------------------------------------------------------------------------------
@@ -167,7 +178,7 @@ end;
 procedure TfrmEntryFrame.pm_hm_CopyClick(Sender: TObject);
 begin
 If lvHistory.ItemIndex >= 0 then
-  Clipboard.AsText := LocalEntry.History[lvHistory.ItemIndex].Password;
+  Clipboard.AsText := LocalEntry.History[Pred(lvHistory.Items.Count) - lvHistory.ItemIndex].Password;
 end;
 
 end.

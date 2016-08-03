@@ -10,8 +10,8 @@ unit GeneratorForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, ExtCtrls;
+  SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  Spin, ExtCtrls;
 
 type
   TfGeneratorForm = class(TForm)
@@ -34,7 +34,7 @@ type
   private
     PromptResult: Boolean;
   public
-    Function GeneratorPrompt(var Output: String): Boolean;
+    Function GeneratorPrompt(out Output: String): Boolean;
   end;
 
 var
@@ -42,12 +42,16 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
   AuxTypes, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3, BinTextEnc;
 
-Function TfGeneratorForm.GeneratorPrompt(var Output: String): Boolean;
+Function TfGeneratorForm.GeneratorPrompt(out Output: String): Boolean;
 begin
 cbMethod.OnChange(nil);
 leSeed.Text := '';

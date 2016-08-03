@@ -10,8 +10,8 @@ unit PromptForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  ExtCtrls;
 
 type
   TfPromptForm = class(TForm)
@@ -27,7 +27,7 @@ type
   private
     PromptResult: Boolean;
   public
-    Function ShowPrompt(const Caption, Prompt, DefaultText: String; var Output: String; Generator: Boolean = False): Boolean;
+    Function ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Generator: Boolean = False): Boolean;
   end;
 
 var
@@ -35,14 +35,18 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
   GeneratorForm;
 
-Function TfPromptForm.ShowPrompt(const Caption, Prompt, DefaultText: String; var Output: String; Generator: Boolean = False): Boolean;
+Function TfPromptForm.ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Generator: Boolean = False): Boolean;
 begin
-Self.Caption := Caption;
+Self.Caption := FormCaption;
 lePrompt.EditLabel.Caption := Prompt;
 lePrompt.Text := DefaultText;
 btnGenerator.Visible := Generator;
@@ -77,10 +81,10 @@ end;
 
 procedure TfPromptForm.btnGeneratorClick(Sender: TObject);
 var
-  GeneratoedText: String;
+  GeneratedText:  String;
 begin
-If fGeneratorForm.GeneratorPrompt(GeneratoedText) then
-  lePrompt.Text := GeneratoedText;
+If fGeneratorForm.GeneratorPrompt(GeneratedText) then
+  lePrompt.Text := GeneratedText;
 end;
 
 //------------------------------------------------------------------------------
