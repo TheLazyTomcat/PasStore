@@ -80,7 +80,8 @@ object fGeneratorForm: TfGeneratorForm
       'SHA3-384'
       'SHA3-512'
       'SHAKE128'
-      'SHAKE256')
+      'SHAKE256'
+      'Random')
   end
   object seLength: TSpinEdit
     Left = 216

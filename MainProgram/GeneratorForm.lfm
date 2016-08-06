@@ -1,61 +1,67 @@
 object fGeneratorForm: TfGeneratorForm
   Left = 722
+  Height = 220
   Top = 114
+  Width = 528
   BorderStyle = bsDialog
   Caption = 'Password generator'
   ClientHeight = 220
   ClientWidth = 528
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
-  Font.Style = []
-  Position = poMainFormCenter
   OnShow = FormShow
-  PixelsPerInch = 96
+  Position = poMainFormCenter
+  LCLVersion = '1.6.0.4'
   object lblMethod: TLabel
     Left = 8
+    Height = 13
     Top = 56
     Width = 142
-    Height = 13
     Caption = 'Method of generation (hash):'
+    ParentColor = False
   end
   object lblLength: TLabel
     Left = 216
+    Height = 13
     Top = 56
     Width = 61
-    Height = 13
     Caption = 'Hash length:'
+    ParentColor = False
   end
   object lblEncoding: TLabel
     Left = 320
+    Height = 13
     Top = 56
     Width = 80
-    Height = 13
     Caption = 'Result encoding:'
+    ParentColor = False
   end
   object leSeed: TLabeledEdit
     Left = 8
+    Height = 21
     Top = 24
     Width = 513
-    Height = 21
-    EditLabel.Width = 28
+    EditLabel.AnchorSideLeft.Control = leSeed
+    EditLabel.AnchorSideRight.Control = leSeed
+    EditLabel.AnchorSideRight.Side = asrBottom
+    EditLabel.AnchorSideBottom.Control = leSeed
+    EditLabel.Left = 8
     EditLabel.Height = 13
+    EditLabel.Top = 8
+    EditLabel.Width = 513
     EditLabel.Caption = 'Seed:'
+    EditLabel.ParentColor = False
     TabOrder = 0
   end
   object cbMethod: TComboBox
     Left = 8
+    Height = 21
     Top = 72
     Width = 201
-    Height = 21
-    Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 6
-    TabOrder = 1
-    Text = 'SHA-256'
-    OnChange = cbMethodChange
     Items.Strings = (
       'MD2'
       'MD4'
@@ -78,13 +84,19 @@ object fGeneratorForm: TfGeneratorForm
       'SHA3-384'
       'SHA3-512'
       'SHAKE128'
-      'SHAKE256')
+      'SHAKE256'
+      'Random'
+    )
+    OnChange = cbMethodChange
+    Style = csDropDownList
+    TabOrder = 1
+    Text = 'SHA-256'
   end
   object seLength: TSpinEdit
     Left = 216
+    Height = 21
     Top = 72
     Width = 97
-    Height = 22
     Increment = 8
     MaxValue = 2048
     MinValue = 8
@@ -93,14 +105,11 @@ object fGeneratorForm: TfGeneratorForm
   end
   object cbEncoding: TComboBox
     Left = 320
+    Height = 21
     Top = 72
     Width = 201
-    Height = 21
-    Style = csDropDownList
     ItemHeight = 13
     ItemIndex = 9
-    TabOrder = 3
-    Text = 'ASCII 85'
     Items.Strings = (
       'Base 2'
       'Base 8'
@@ -111,49 +120,59 @@ object fGeneratorForm: TfGeneratorForm
       'Base 32 - Extended Hexadecimal'
       'Base 64'
       'Base 85'
-      'ASCII 85')
+      'ASCII 85'
+    )
+    Style = csDropDownList
+    TabOrder = 3
+    Text = 'ASCII 85'
   end
   object btnGenerate: TButton
     Left = 8
+    Height = 25
     Top = 104
     Width = 513
-    Height = 25
     Caption = 'Generate'
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
+    OnClick = btnGenerateClick
     ParentFont = False
     TabOrder = 4
-    OnClick = btnGenerateClick
   end
   object leResult: TLabeledEdit
     Left = 8
+    Height = 21
     Top = 152
     Width = 513
-    Height = 21
-    EditLabel.Width = 34
+    EditLabel.AnchorSideLeft.Control = leResult
+    EditLabel.AnchorSideRight.Control = leResult
+    EditLabel.AnchorSideRight.Side = asrBottom
+    EditLabel.AnchorSideBottom.Control = leResult
+    EditLabel.Left = 8
     EditLabel.Height = 13
+    EditLabel.Top = 136
+    EditLabel.Width = 513
     EditLabel.Caption = 'Result:'
+    EditLabel.ParentColor = False
     TabOrder = 5
   end
   object btnAccept: TButton
     Left = 352
+    Height = 25
     Top = 184
     Width = 81
-    Height = 25
     Caption = 'Accept'
-    TabOrder = 6
     OnClick = btnAcceptClick
+    TabOrder = 6
   end
   object btnCancel: TButton
     Left = 440
+    Height = 25
     Top = 184
     Width = 81
-    Height = 25
     Caption = 'Cancel'
-    TabOrder = 7
     OnClick = btnCancelClick
+    TabOrder = 7
   end
 end

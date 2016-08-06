@@ -293,7 +293,8 @@ If Stream_ReadUInt8(Stream,False) = 0 then
           Break {while};
         end;
       Stream.Position := Stream.Position - 1;
-    end;
+    end
+else Stream.Size := Stream.Size - 1;
 Stream.Position := 0;
 ZDecompressStream(Stream);
 end;
