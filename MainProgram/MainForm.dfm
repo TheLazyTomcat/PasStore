@@ -13769,6 +13769,11 @@ object fMainForm: TfMainForm
     object N5: TMenuItem
       Caption = '-'
     end
+    object pm_entry_SaveNow: TMenuItem
+      Caption = 'Save now'
+      ShortCut = 16467
+      OnClick = pm_entry_SaveNowClick
+    end
     object pm_entry_ChangePswd: TMenuItem
       Caption = 'Change master password...'
       ShortCut = 16464

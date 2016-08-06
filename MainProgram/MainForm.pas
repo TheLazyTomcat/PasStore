@@ -19,6 +19,9 @@ uses
   PST_Manager;
 
 type
+
+  { TfMainForm }
+
   TfMainForm = class(TForm)
     shpHeader: TShape;
     imgLogo: TImage;
@@ -53,6 +56,7 @@ type
     N4: TMenuItem;
     pm_entry_FindNext: TMenuItem;
     N5: TMenuItem;
+    pm_entry_SaveNow: TMenuItem;
     pm_entry_ChangePswd: TMenuItem;
     cbSearchHistory: TCheckBox;
     actlActionList: TActionList;
@@ -72,12 +76,13 @@ type
     procedure pm_entry_SortFwdClick(Sender: TObject);
     procedure pm_entry_SortRevClick(Sender: TObject);
     procedure pm_entry_FindNextClick(Sender: TObject);
+    procedure pm_entry_SaveNowClick(Sender: TObject);    
     procedure pm_entry_ChangePswdClick(Sender: TObject);
     procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
     procedure btnFindPrevClick(Sender: TObject);
     procedure btnFindNextClick(Sender: TObject);
     procedure actSearchShortcutExecute(Sender: TObject);
-    procedure tmrAnimTimerTimer(Sender: TObject);  
+    procedure tmrAnimTimerTimer(Sender: TObject);
   private
     // animation counters
     acntNothingFound: Integer;
@@ -412,6 +417,21 @@ end;
 procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
 begin
 btnFindNext.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SaveNowClick(Sender: TObject);
+var
+  CurrentIndex: Integer;
+begin
+CurrentIndex := Manager.CurrentEntryIdx;
+try
+  Manager.CurrentEntryIdx := -2;
+  Manager.Save;
+finally
+  Manager.CurrentEntryIdx := CurrentIndex;
+end;
 end;
 
 //------------------------------------------------------------------------------

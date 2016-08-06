@@ -3337,7 +3337,7 @@ object fMainForm: TfMainForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.4.4.0'
+  LCLVersion = '1.6.0.4'
   object lblEntries: TLabel
     Left = 8
     Height = 13
@@ -4076,16 +4076,6 @@ object fMainForm: TfMainForm
     inline frmEntryFrame: TfrmEntryFrame
       Left = 6
       Top = 2
-      inherited pnlMainPanel: TPanel
-        inherited lePassword: TLabeledEdit
-          EditLabel.Top = 230
-          EditLabel.Width = 361
-        end
-        inherited leAddress: TLabeledEdit
-          EditLabel.Top = 30
-          EditLabel.Width = 336
-        end
-      end
     end
   end
   object sbStatusBar: TStatusBar
@@ -4225,6 +4215,11 @@ object fMainForm: TfMainForm
     end
     object N5: TMenuItem
       Caption = '-'
+    end
+    object pm_entry_SaveNow: TMenuItem
+      Caption = 'Save now'
+      ShortCut = 16467
+      OnClick = pm_entry_SaveNowClick
     end
     object pm_entry_ChangePswd: TMenuItem
       Caption = 'Change master password...'
