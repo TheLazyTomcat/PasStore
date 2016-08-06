@@ -61,7 +61,7 @@ type
     procedure SetCurrentEntry(Value: TPSTEntry);
   protected
     Function ValidIndex(Idx: Integer): Boolean; virtual;
-    procedure GetKeyAndInitVector(var Key, InitVec); virtual;
+    procedure GetKeyAndInitVector(out Key, InitVec); virtual;
     procedure EncryptStream(Stream: TMemoryStream); virtual;
     procedure DecryptStream(Stream: TMemoryStream); virtual;
   public
@@ -71,16 +71,20 @@ type
     Function AddEntry(const Name: String): Integer; virtual;
     Function RemoveEntry(const Name: String): Integer; virtual;
     procedure DeleteEntry(Index: Integer); virtual;
+    procedure Exchange(Index1,Index2: Integer); virtual;
     Function Load: Boolean; virtual;
     procedure Save; virtual;
+    Function Find(const SubString: String; FromEntry: Integer = 0; Backward: Boolean = False;
+                  CaseSensitive: Boolean = False; SearchHistory: Boolean = False): Integer; virtual;
+    procedure Sort(Backward: Boolean = False); virtual;
     property EntriesPtr[Index: Integer]: PPSTEntry read GetEntryPtr;
     property Entries[Index: Integer]: TPSTEntry read GetEntry write SetEntry; default;
+    property CurrentEntry: TPSTEntry read GetCurrentEntry write SetCurrentEntry;
   published
     property EntryCount: Integer read GetEntryCount;
     property FileName: String read fFileName write fFileName;
     property MasterPassword: String read fMasterPassword write fMasterPassword;
     property CurrentEntryIdx: Integer read fCurrentEntryIdx write SetCurrentEntryIdx;
-    property CurrentEntry: TPSTEntry read GetCurrentEntry write SetCurrentEntry;
     property OnEntrySet: TPSTEntryEvent read fOnEntrySet write fOnEntrySet;
     property OnEntryGet: TPSTEntryEvent read fOnEntryGet write fOnEntryGet;
   end;
@@ -182,7 +186,8 @@ If Value <> fCurrentEntryIdx then
         If ValidIndex(fCurrentEntryIdx) then
           fOnEntrySet(Self,GetEntryPtr(fCurrentEntryIdx))
         else
-          fOnEntrySet(Self,nil)
+          If fCurrentEntryIdx >= -1 then
+            fOnEntrySet(Self,nil)
       end;
   end;
 end;
@@ -218,7 +223,7 @@ end;
  
 //------------------------------------------------------------------------------
 
-procedure TPSTManager.GetKeyAndInitVector(var Key, InitVec);
+procedure TPSTManager.GetKeyAndInitVector(out Key, InitVec);
 var
   Pswd: UTF8String;
   Temp: TSHA2Hash;
@@ -226,12 +231,16 @@ begin
 {$IFDEF Unicode}
 Pswd := UTF8Encode(fMasterPassword);
 {$ELSE}
+{$IFDEF FPC}
+Pswd := fMasterPassword;
+{$ELSE}
 Pswd := AnsiToUTF8(fMasterPassword);
 {$ENDIF}
-Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],InitVec,20);
+{$ENDIF}
+Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],{%H-}InitVec,20);
 Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(AnsiStringMD5(Pswd))));
 Temp := BufferSHA2(sha512_224,AnsiStringSHA3(SHAKE256,Pswd,1024).HashData[0],128);
-Move(Temp.Hash512_224,Key,28);
+Move(Temp.Hash512_224,{%H-}Key,28);
 end;
 
 //------------------------------------------------------------------------------
@@ -284,7 +293,8 @@ If Stream_ReadUInt8(Stream,False) = 0 then
           Break {while};
         end;
       Stream.Position := Stream.Position - 1;
-    end;
+    end
+else Stream.Size := Stream.Size - 1;
 Stream.Position := 0;
 ZDecompressStream(Stream);
 end;
@@ -354,6 +364,24 @@ If (Index >= Low(fEntries)) and (Index <= High(fEntries)) then
     SetLength(fEntries,Length(fEntries) - 1);
   end
 else raise Exception.CreateFmt('TPSTManager.Delete: Index (%d) out of bounds.',[Index]);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TPSTManager.Exchange(Index1,Index2: Integer);
+var
+  TempEntry:  TPSTEntry;
+begin
+If ValidIndex(Index1) and ValidIndex(Index2) then
+  begin
+    If Index1 <> Index2 then
+      begin
+        TempEntry := fEntries[Index1];
+        fEntries[Index1] := fEntries[Index2];
+        fEntries[Index2] := TempEntry;
+      end;
+  end
+else raise Exception.CreateFmt('TPSTManager.Exchange: Invalid index (%d, %d).',[Index1,Index2]);
 end;
 
 //------------------------------------------------------------------------------
@@ -440,6 +468,117 @@ try
 finally
   WorkStream.Free;
 end;
+end;
+
+//------------------------------------------------------------------------------
+
+Function TPSTManager.Find(const SubString: String; FromEntry: Integer = 0; Backward: Boolean = False;
+                          CaseSensitive: Boolean = False; SearchHistory: Boolean = False): Integer;
+var
+  i:      Integer;
+  Index:  Integer;
+
+  Function SearchEntry(EntryIndex: Integer): Boolean;
+
+    Function LocalCompare(const Str1,Str2: String): Boolean;
+    begin
+      If CaseSensitive then
+        Result := AnsiContainsStr(Str1,Str2)
+      else
+        Result := AnsiContainsText(Str1,Str2);
+    end;
+
+  var
+    ii: Integer;
+  begin
+    Result := LocalCompare(fEntries[EntryIndex].Name,SubString) or
+              LocalCompare(fEntries[EntryIndex].Address,SubString) or
+              LocalCompare(fEntries[EntryIndex].Notes,SubString) or
+              LocalCompare(fEntries[EntryIndex].Password,SubString);
+    If SearchHistory and not Result then
+      For ii := Low(fEntries[EntryIndex].History) to High (fEntries[EntryIndex].History) do
+        If LocalCompare(fEntries[EntryIndex].History[ii].Password,SubString) then
+          begin
+            Result := True;
+            Break{For ii};
+          end;
+  end;
+
+  Function WrapIndex(Idx: Integer): Integer;
+  begin
+    Result := FromEntry + Idx;
+    while Result > High(fEntries) do
+      Dec(Result,Length(fEntries));
+    while Result < Low(fEntries) do
+      Inc(Result,Length(fEntries));
+  end;
+
+begin
+Result := -1;
+If ValidIndex(FromEntry) then
+  If Backward then
+    begin
+      FromEntry := WrapIndex(-1);
+      For i := High(fEntries) downto Low(fEntries) do
+        begin
+          Index := WrapIndex(i);
+          If SearchEntry(Index) then
+            begin
+              Result := Index;
+              Break{For i};
+            end;        
+        end;
+    end
+  else
+    begin
+      FromEntry := WrapIndex(1);
+      For i := Low(fEntries) to High(fEntries) do
+        begin
+          Index := WrapIndex(i);
+          If SearchEntry(Index) then
+            begin
+              Result := Index;
+              Break{For i};
+            end;
+        end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+{$message 'revisit'}
+procedure TPSTManager.Sort(Backward: Boolean = False);
+
+  Function CompareEntries(Idx1,Idx2: Integer): Integer;
+  begin
+    Result := AnsiCompareStr(fEntries[Idx2].Name,fEntries[Idx1].Name);
+    If Backward then
+      Result := (-1) * Result;
+  end;
+
+  procedure QuickSort(Left,Right: Integer);
+  var
+    i:    Integer;
+    Idx:  Integer;
+  begin
+    If Left < Right then
+      begin
+        Exchange((Left + Right) shr 1,Right);
+        Idx := Left;
+        For i := Left to Pred(Right) do
+          If CompareEntries(Right,i) < 0 then
+            begin
+              Exchange(i,idx);
+              Inc(Idx);
+            end;
+        Exchange(Idx,Right);
+        QuickSort(Left,Idx - 1);
+        QuickSort(Idx + 1, Right);
+      end;
+  end;
+
+begin
+QuickSort(Low(fEntries),High(fEntries));
 end;
 
 end.

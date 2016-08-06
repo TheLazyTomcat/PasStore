@@ -7,14 +7,21 @@
 -------------------------------------------------------------------------------}
 unit MainForm;
 
+{$IFDEF FPC}
+  {$MODE Delphi}
+{$ENDIF}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, ExtCtrls, StdCtrls, XPMan, EntryFrame, Menus,
+  Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs,
+  ComCtrls, ExtCtrls, StdCtrls, EntryFrame, Menus, ActnList, {$IFNDEF FPC}XPMan,{$ENDIF}
   PST_Manager;
 
 type
+
+  { TfMainForm }
+
   TfMainForm = class(TForm)
     shpHeader: TShape;
     imgLogo: TImage;
@@ -27,7 +34,13 @@ type
     gbEntryDetails: TGroupBox;
     lblEntries: TLabel;
     sbStatusBar: TStatusBar;
+  {$IFNDEF FPC}
     oXPManifest: TXPManifest;
+  {$ENDIF}
+    leSearchFor: TLabeledEdit;
+    btnFindPrev: TButton;
+    btnFindNext: TButton;
+    cbCaseSensitive: TCheckBox;    
     frmEntryFrame: TfrmEntryFrame;
     pmEntries: TPopupMenu;
     pm_entry_Add: TMenuItem;
@@ -35,21 +48,49 @@ type
     N1: TMenuItem;
     pm_entry_Rename: TMenuItem;
     N2: TMenuItem;
-    pm_entry_ChangePswd: TMenuItem;  
+    pm_entry_MoveUp: TMenuItem;
+    pm_entry_MoveDown: TMenuItem;
+    N3: TMenuItem;
+    pm_entry_SortFwd: TMenuItem;
+    pm_entry_SortRev: TMenuItem;
+    N4: TMenuItem;
+    pm_entry_FindNext: TMenuItem;
+    N5: TMenuItem;
+    pm_entry_SaveNow: TMenuItem;
+    pm_entry_ChangePswd: TMenuItem;
+    cbSearchHistory: TCheckBox;
+    actlActionList: TActionList;
+    actSearchShortcut: TAction;
+    tmrAnimTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
+    procedure lbEntriesMouseDown(Sender: TObject; {%H-}Button: TMouseButton; {%H-}Shift: TShiftState; X, Y: Integer);
     procedure FormDestroy(Sender: TObject);
     procedure pmEntriesPopup(Sender: TObject);
     procedure pm_entry_AddClick(Sender: TObject);
     procedure pm_entry_RemoveClick(Sender: TObject);
     procedure pm_entry_RenameClick(Sender: TObject);
+    procedure pm_entry_MoveUpClick(Sender: TObject);
+    procedure pm_entry_MoveDownClick(Sender: TObject);
+    procedure pm_entry_SortFwdClick(Sender: TObject);
+    procedure pm_entry_SortRevClick(Sender: TObject);
+    procedure pm_entry_FindNextClick(Sender: TObject);
+    procedure pm_entry_SaveNowClick(Sender: TObject);    
     procedure pm_entry_ChangePswdClick(Sender: TObject);
+    procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
+    procedure btnFindPrevClick(Sender: TObject);
+    procedure btnFindNextClick(Sender: TObject);
+    procedure actSearchShortcutExecute(Sender: TObject);
+    procedure tmrAnimTimerTimer(Sender: TObject);
   private
-    { Private declarations }
+    // animation counters
+    acntNothingFound: Integer;
+    acntSearching:    Integer;
   protected
     Unlocked: Boolean;
     Manager:  TPSTManager;
+    procedure RunAnimation(ID: Integer);
   public
     { Public declarations }
     procedure AskForMasterPassword;
@@ -62,7 +103,10 @@ implementation
 
 uses
   WinFileInfo,
-  PromptForm, GeneratorForm;
+  PromptForm, GeneratorForm
+{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+  , LazFileUtils, LazUTF8
+{$IFEND};
 
 {$IF defined(CPU64) or defined(CPU64BITS)}
   {$DEFINE 64bit}
@@ -72,7 +116,36 @@ uses
   {$DEFINE 32bit}
 {$IFEND}
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
+
+const
+  ANIM_NOTHINGFOUND = 1;
+  ANIM_SEARCHING    = 2;
+
+procedure TfMainForm.RunAnimation(ID: Integer);
+begin
+case ID of
+  ANIM_NOTHINGFOUND:
+      begin
+        acntNothingFound := 20;
+        leSearchFor.Color := clRed;
+        sbStatusBar.Panels[1].Text := 'Nothing found';
+        Beep;
+      end;
+  ANIM_SEARCHING:
+      begin
+        acntSearching := 5;
+        leSearchFor.Color := clYellow;
+      end;
+end;
+tmrAnimTimer.Enabled := True;
+end;
+
+//------------------------------------------------------------------------------
 
 procedure TfMainForm.AskForMasterPassword;
 var
@@ -88,7 +161,11 @@ try
   If fPromptForm.ShowPrompt('Enter master password','Master password:','',Pswd,True) then
     begin
       Manager.MasterPassword := Pswd;
+    {$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+      If FileExistsUTF8(Manager.FileName) then
+    {$ELSE}
       If FileExists(Manager.FileName) then
+    {$IFEND}
         If not Manager.Load then
           begin
             MessageDlg('Wrong master password.',mtError,[mbOk],0);
@@ -111,9 +188,15 @@ procedure TfMainForm.FormCreate(Sender: TObject);
 begin
 sbStatusBar.DoubleBuffered := True;
 Manager := TPSTManager.Create;
+{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+Manager.FileName := ExtractFilePath(SysToUTF8(ParamStr(0))) + 'PasStore.dat';
+{$ELSE}
 Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
+{$IFEND}
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
+acntNothingFound := 0;
+acntSearching := 0;
 Unlocked := False;
 // Load copyright info
 with TWinFileInfo.Create(WFI_LS_VersionInfoAndFFI) do
@@ -131,6 +214,8 @@ try
 finally
   Free;
 end;
+pm_entry_MoveUp.ShortCut := ShortCut(VK_UP,[ssShift]);
+pm_entry_MoveDown.ShortCut := ShortCut(VK_DOWN,[ssShift]);
 end;
 
 //------------------------------------------------------------------------------
@@ -173,10 +258,32 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TfMainForm.lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Index:  Integer;
+begin
+If (Button = mbRight) and (Shift = [ssRight]) then
+  begin
+    Index := lbEntries.ItemAtPos(Point(X,Y),True);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.pmEntriesPopup(Sender: TObject);
 begin
 pm_entry_Remove.Enabled := lbEntries.ItemIndex >= 0;
 pm_entry_Rename.Enabled := lbEntries.ItemIndex >= 0;
+pm_entry_MoveUp.Enabled := lbEntries.ItemIndex > 0;
+pm_entry_MoveDown.Enabled := (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0);
+pm_entry_SortFwd.Enabled := lbEntries.Count > 1;
+pm_entry_SortRev.Enabled := lbEntries.Count > 1;
+pm_entry_FindNext.Enabled := leSearchFor.Text <> '';
 end;
 
 //------------------------------------------------------------------------------
@@ -198,25 +305,26 @@ end;
 
 procedure TfMainForm.pm_entry_RemoveClick(Sender: TObject);
 var
-  OldIdx: Integer;
+  OldIndex: Integer;
 begin
 If lbEntries.ItemIndex >= 0 then
   If MessageDlg(Format('Are you sure you want to delete entry "%s"?',[lbEntries.Items[lbEntries.ItemIndex]]),
                 mtConfirmation,[mbYes,mbNo],0) = mrYes then
     begin
-      OldIdx := lbEntries.ItemIndex;
-      If lbEntries.ItemIndex < Pred(lbEntries.Count) then
-        lbEntries.ItemIndex := lbEntries.ItemIndex + 1
+      OldIndex := lbEntries.ItemIndex;
+      Manager.CurrentEntryIdx := -2;
+      lbEntries.Items.Delete(OldIndex);
+      Manager.DeleteEntry(OldIndex); 
+      If OldIndex < lbEntries.Count then
+        lbEntries.ItemIndex := OldIndex
       else
         begin
-          If lbEntries.ItemIndex > 0 then
-            lbEntries.ItemIndex := lbEntries.ItemIndex - 1
+          If lbEntries.Count > 0 then
+            lbEntries.ItemIndex := Pred(lbEntries.Count)
           else
             lbEntries.ItemIndex := -1;
         end;
       lbEntries.OnClick(nil);
-      lbEntries.Items.Delete(OldIdx);
-      Manager.DeleteEntry(OldIdx);
     end;
 end;
  
@@ -238,12 +346,182 @@ end;
  
 //------------------------------------------------------------------------------
 
+procedure TfMainForm.pm_entry_MoveUpClick(Sender: TObject);
+var
+  OldIndex: Integer;
+begin
+If lbEntries.ItemIndex > 0 then
+  begin
+    OldIndex := lbEntries.ItemIndex;
+    Manager.CurrentEntryIdx := -2;
+    Manager.Exchange(OldIndex,OldIndex - 1);
+    lbEntries.Items.Exchange(OldIndex,OldIndex - 1);
+    lbEntries.ItemIndex := OldIndex - 1;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_MoveDownClick(Sender: TObject);
+var
+  OldIndex: Integer;
+begin
+If (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0) then
+  begin
+    OldIndex := lbEntries.ItemIndex;
+    Manager.CurrentEntryIdx := -2;
+    Manager.Exchange(OldIndex,OldIndex + 1);
+    lbEntries.Items.Exchange(OldIndex,OldIndex + 1);
+    lbEntries.ItemIndex := OldIndex + 1;
+    lbEntries.OnClick(nil);
+  end;
+end; 
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SortFwdClick(Sender: TObject);
+var
+  i:  Integer;
+begin
+If lbEntries.Count > 1 then
+  begin
+    Manager.CurrentEntryIdx := -2;
+    Manager.Sort(False);
+    For i := 0 to Pred(lbEntries.Count) do
+      lbEntries.Items[i] := Manager[i].Name;
+    lbEntries.ItemIndex := 0;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SortRevClick(Sender: TObject);
+var
+  i:  Integer;
+begin
+If lbEntries.Count > 1 then
+  begin
+    Manager.CurrentEntryIdx := -2;
+    Manager.Sort(True);
+    For i := 0 to Pred(lbEntries.Count) do
+      lbEntries.Items[i] := Manager[i].Name;
+    lbEntries.ItemIndex := 0;
+    lbEntries.OnClick(nil);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
+begin
+btnFindNext.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_SaveNowClick(Sender: TObject);
+var
+  CurrentIndex: Integer;
+begin
+CurrentIndex := Manager.CurrentEntryIdx;
+try
+  Manager.CurrentEntryIdx := -2;
+  Manager.Save;
+finally
+  Manager.CurrentEntryIdx := CurrentIndex;
+end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.pm_entry_ChangePswdClick(Sender: TObject);
 var
   OutStr: String;
 begin
 If fPromptForm.ShowPrompt('Master password','New master password:',Manager.MasterPassword,OutStr,True) then
   Manager.MasterPassword := OutStr;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.leSearchForKeyPress(Sender: TObject; var Key: Char);
+begin
+If Key = #13 then
+  begin
+    btnFindNext.OnClick(nil);
+    Key := #0;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.btnFindPrevClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,True,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end
+    else RunAnimation(ANIM_NOTHINGFOUND);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.btnFindNextClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,False,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        lbEntries.ItemIndex := Index;
+        lbEntries.OnClick(nil);
+      end
+    else RunAnimation(ANIM_NOTHINGFOUND);
+end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.actSearchShortcutExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not leSearchFor.Focused then
+  begin
+    leSearchFor.SetFocus;
+    leSearchFor.SelectAll;
+    RunAnimation(ANIM_SEARCHING);
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
+
+  Function DecAndGet(var Value: Integer): Integer;
+  begin
+    Result := Value;
+    If Value > 0 then
+      Dec(Value);
+  end;
+
+begin
+case DecAndGet(acntNothingFound) of
+  14: leSearchFor.Color := clWindow;
+   1: sbStatusBar.Panels[1].Text := '';
+end;
+If DecAndGet(acntSearching) = 1 then
+  leSearchFor.Color := clWindow;
+tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
 end;
 
 end.

@@ -10,8 +10,8 @@ unit GeneratorForm;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Spin, ExtCtrls;
+  SysUtils, Variants, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  Spin, ExtCtrls;
 
 type
   TfGeneratorForm = class(TForm)
@@ -34,7 +34,7 @@ type
   private
     PromptResult: Boolean;
   public
-    Function GeneratorPrompt(var Output: String): Boolean;
+    Function GeneratorPrompt(out Output: String): Boolean;
   end;
 
 var
@@ -42,12 +42,17 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
-  AuxTypes, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3, BinTextEnc;
+  AuxTypes, CRC32, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3,
+  BinTextEnc, BinaryStreaming;
 
-Function TfGeneratorForm.GeneratorPrompt(var Output: String): Boolean;
+Function TfGeneratorForm.GeneratorPrompt(out Output: String): Boolean;
 begin
 cbMethod.OnChange(nil);
 leSeed.Text := '';
@@ -69,7 +74,7 @@ end;
 
 procedure TfGeneratorForm.cbMethodChange(Sender: TObject);
 begin
-seLength.Enabled := cbMethod.ItemIndex in [15,20,21];
+seLength.Enabled := cbMethod.ItemIndex in [15,20..22];
 lblLength.Enabled := seLength.Enabled;
 end;
 
@@ -84,6 +89,8 @@ var
   SHA0Temp: TSHA0Hash;
   SHA1Temp: TSHA1Hash;
   SHA2Temp: TSHA2Hash;
+  Buffer:   TMemoryStream;
+  i:        Integer;
 
   Function EncodeHash(const Hash; Length: PtrUInt): String;
   begin
@@ -116,60 +123,74 @@ Seed := AnsiToUTF8(leSeed.Text);
 {$ENDIF}
 case cbMethod.ItemIndex of
   0:  begin
-        MD2Temp := BinaryCorrectMD2(StringMD2(Seed));
+        MD2Temp := BinaryCorrectMD2(AnsiStringMD2(Seed));
         leResult.Text := EncodeHash(MD2Temp,SizeOf(TMD2Hash));
       end;
   1:  begin
-        MD4Temp := BinaryCorrectMD4(StringMD4(Seed));
+        MD4Temp := BinaryCorrectMD4(AnsiStringMD4(Seed));
         leResult.Text := EncodeHash(MD4Temp,SizeOf(TMD4Hash));
       end;
   2:  begin
-        MD5Temp := BinaryCorrectMD5(StringMD5(Seed));
+        MD5Temp := BinaryCorrectMD5(AnsiStringMD5(Seed));
         leResult.Text := EncodeHash(MD5Temp,SizeOf(TMD5Hash));
       end;
   3:  begin
-        SHA0Temp := BinaryCorrectSHA0(StringSHA0(Seed));
+        SHA0Temp := BinaryCorrectSHA0(AnsiStringSHA0(Seed));
         leResult.Text := EncodeHash(SHA0Temp,SizeOf(TSHA0Hash));
       end;
   4:  begin
-        SHA1Temp := BinaryCorrectSHA1(StringSHA1(Seed));
+        SHA1Temp := BinaryCorrectSHA1(AnsiStringSHA1(Seed));
         leResult.Text := EncodeHash(SHA1Temp,SizeOf(TSHA1Hash));
       end;
   5:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha224,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha224,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash224,28);
       end;
   6:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha256,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha256,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash256,32);
       end;
   7:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha384,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha384,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash384,48);
       end;
   8:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha512,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512,64);
       end;
   9:  begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_224,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha512_224,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512_224,28);
       end;
   10: begin
-        SHA2Temp := BinaryCorrectSHA2(StringSHA2(sha512_256,Seed));
+        SHA2Temp := BinaryCorrectSHA2(AnsiStringSHA2(sha512_256,Seed));
         leResult.Text := EncodeHash(SHA2Temp.Hash512_256,32);
       end;
-  11: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak224,Seed)));
-  12: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak256,Seed)));
-  13: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak384,Seed)));
-  14: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak512,Seed)));
-  15: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(Keccak_b,Seed,seLength.Value)));
-  16: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_224,Seed)));
-  17: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_256,Seed)));
-  18: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_384,Seed)));
-  19: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHA3_512,Seed)));
-  20: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE128,Seed,seLength.Value)));
-  21: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(StringSHA3(SHAKE256,Seed,seLength.Value)));
+  11: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(Keccak224,Seed)));
+  12: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(Keccak256,Seed)));
+  13: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(Keccak384,Seed)));
+  14: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(Keccak512,Seed)));
+  15: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(Keccak_b,Seed,seLength.Value)));
+  16: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHA3_224,Seed)));
+  17: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHA3_256,Seed)));
+  18: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHA3_384,Seed)));
+  19: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHA3_512,Seed)));
+  20: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHAKE128,Seed,seLength.Value)));
+  21: leResult.Text := EncodeKeccak(BinaryCorrectSHA3(AnsiStringSHA3(SHAKE256,Seed,seLength.Value)));
+  22: begin
+        Buffer := TMemoryStream.Create;
+        try
+          If Seed <> '' then
+            RandSeed := AnsiStringCRC32(Seed)
+          else
+            Randomize;
+          For i := 1 to (seLength.Value shr 3) do
+            Stream_WriteUInt8(Buffer,UInt8(Random(256)));
+          leResult.Text := EncodeHash(Buffer.Memory^,seLength.Value shr 3);
+        finally
+          Buffer.Free;
+        end;
+      end;
 end;
 end;
 
