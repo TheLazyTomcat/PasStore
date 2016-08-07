@@ -31,6 +31,8 @@ type
     Name:     String;
     Address:  String;
     Notes:    String;
+    Login:    String;
+    Email:    String;
     Password: String;
     History:  TPSTEntryHistory;
   end;
@@ -109,7 +111,7 @@ uses
     4B    32b uint    entry count
     []                entry array
 
-  Entry:
+  Entry, type 1:
 
     4B    32b uint    signature (0xFFFA0102)
     []    String      name
@@ -119,11 +121,27 @@ uses
     4B    32b uint    history count
     []                history array
 
-  History item:
+    History item:
 
-    8B    TDateTime   time of addition
+      8B    TDateTime   time of addition
+      []    String      password
+
+  Entry, type 2:
+
+    4B    32b uint    signature (0xFFFA0304)
+    []    String      name
+    []    String      address
+    []    String      notes
+    []    String      login
+    []    String      e-mail
     []    String      password
+    4B    32b uint    history count
+    []                history array
 
+    History item:
+
+      8B    TDateTime   time of addition
+      []    String      password
 
   File is then compressed using ZLIB and encrypted using Rijndael (160bit block,
   224bit key). Init vector is Keccak[] hash of password, key is obtained as
@@ -132,8 +150,9 @@ uses
 -------------------------------------------------------------------------------}
 
 const
-  PST_FileSignature  = UInt32($72745350);
-  PST_EntrySignature = UInt32($FFFA0102);
+  PST_FileSignature    = UInt32($72745350);
+  PST_EntrySignature_1 = UInt32($FFFA0102);
+  PST_EntrySignature_2 = UInt32($FFFA0304);
 
 {==============================================================================}
 {   TPSTManager - implementation                                               }
@@ -389,7 +408,43 @@ end;
 Function TPSTManager.Load: Boolean;
 var
   WorkStream: TMemoryStream;
-  i,j:        Integer;
+  Streamer:   TStreamStreamer;
+  i:          Integer;
+
+  procedure LoadEntry_1(out Entry: TPSTEntry);
+  var
+    ii: Integer;
+  begin
+    Streamer.ReadString(Entry.Name);
+    Streamer.ReadString(Entry.Address);
+    Streamer.ReadString(Entry.Notes);
+    Streamer.ReadString(Entry.Password);
+    SetLength(Entry.History,Streamer.ReadUInt32);
+    For ii := Low(Entry.History) to High(Entry.History) do
+      begin
+        Streamer.ReadBuffer(Entry.History[ii].Time,SizeOf(TDateTime));
+        Streamer.ReadString(Entry.History[ii].Password);
+      end;
+  end;
+
+  procedure LoadEntry_2(out Entry: TPSTEntry);
+  var
+    ii: Integer;
+  begin
+    Streamer.ReadString(Entry.Name);
+    Streamer.ReadString(Entry.Address);
+    Streamer.ReadString(Entry.Notes);
+    Streamer.ReadString(Entry.Login);
+    Streamer.ReadString(Entry.Email);
+    Streamer.ReadString(Entry.Password);
+    SetLength(Entry.History,Streamer.ReadUInt32);
+    For ii := Low(Entry.History) to High(Entry.History) do
+      begin
+        Streamer.ReadBuffer(Entry.History[ii].Time,SizeOf(TDateTime));
+        Streamer.ReadString(Entry.History[ii].Password);
+      end;
+  end;
+
 begin
 try
   WorkStream := TMemoryStream.Create;
@@ -398,30 +453,22 @@ try
     WorkStream.LoadFromFile(fFileName);
     DecryptStream(WorkStream);
     WorkStream.Position := 0;
-    with TStreamStreamer.Create(WorkStream) do
+    Streamer := TStreamStreamer.Create(WorkStream);
     try
-      If ReadUInt32 = PST_FileSignature then
+      If Streamer.ReadUInt32 = PST_FileSignature then
         begin
-          SetLength(fEntries,ReadUInt32);
+          SetLength(fEntries,Streamer.ReadUInt32);
           For i := Low(fEntries) to High(fEntries) do
-            If ReadUInt32 = PST_EntrySignature then
-              begin
-                ReadString(fEntries[i].Name);
-                ReadString(fEntries[i].Address);
-                ReadString(fEntries[i].Notes);
-                ReadString(fEntries[i].Password);
-                SetLength(fEntries[i].History,ReadUInt32);
-                For j := Low(fEntries[i].History) to High(fEntries[i].History) do
-                  begin
-                    ReadBuffer(fEntries[i].History[j].Time,SizeOf(TDateTime));
-                    ReadString(fEntries[i].History[j].Password);
-                  end;
-              end
-            else raise Exception.Create('Wrong entry signature.');
+            case Streamer.ReadUInt32 of
+              PST_EntrySignature_1: LoadEntry_1(fEntries[i]);
+              PST_EntrySignature_2: LoadEntry_2(fEntries[i]);
+            else
+              raise Exception.Create('Wrong entry signature.');
+            end;
           Result := True;  
         end;
     finally
-      Free;
+      Streamer.Free;
     end;
   finally
     WorkStream.Free;
@@ -447,10 +494,12 @@ try
     WriteUInt32(Length(fEntries));
     For i := Low(fEntries) to High(fEntries) do
       begin
-        WriteUInt32(PST_EntrySignature);
+        WriteUInt32(PST_EntrySignature_2);
         WriteString(fEntries[i].Name);
         WriteString(fEntries[i].Address);
         WriteString(fEntries[i].Notes);
+        WriteString(fEntries[i].Login);
+        WriteString(fEntries[i].Email);
         WriteString(fEntries[i].Password);
         WriteUInt32(Length(fEntries[i].History));
         For j := Low(fEntries[i].History) to High(fEntries[i].History) do
@@ -494,6 +543,8 @@ var
     Result := LocalCompare(fEntries[EntryIndex].Name,SubString) or
               LocalCompare(fEntries[EntryIndex].Address,SubString) or
               LocalCompare(fEntries[EntryIndex].Notes,SubString) or
+              LocalCompare(fEntries[EntryIndex].Login,SubString) or
+              LocalCompare(fEntries[EntryIndex].Email,SubString) or
               LocalCompare(fEntries[EntryIndex].Password,SubString);
     If SearchHistory and not Result then
       For ii := Low(fEntries[EntryIndex].History) to High (fEntries[EntryIndex].History) do
@@ -546,7 +597,6 @@ end;
 
 //------------------------------------------------------------------------------
 
-{$message 'revisit'}
 procedure TPSTManager.Sort(Backward: Boolean = False);
 
   Function CompareEntries(Idx1,Idx2: Integer): Integer;

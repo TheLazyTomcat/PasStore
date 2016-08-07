@@ -47,7 +47,7 @@ object frmEntryFrame: TfrmEntryFrame
     end
     object lblHistory: TLabel
       Left = 0
-      Top = 304
+      Top = 344
       Width = 38
       Height = 13
       Caption = 'History:'
@@ -61,7 +61,7 @@ object frmEntryFrame: TfrmEntryFrame
     end
     object bvlHorSplit: TBevel
       Left = 0
-      Top = 224
+      Top = 184
       Width = 361
       Height = 9
       Shape = bsTopLine
@@ -70,15 +70,15 @@ object frmEntryFrame: TfrmEntryFrame
       Left = 0
       Top = 88
       Width = 361
-      Height = 129
+      Height = 84
       ScrollBars = ssVertical
       TabOrder = 2
     end
     object lvHistory: TListView
       Left = 0
-      Top = 320
+      Top = 360
       Width = 361
-      Height = 137
+      Height = 97
       Columns = <
         item
           Caption = 'Time of addition'
@@ -97,7 +97,7 @@ object frmEntryFrame: TfrmEntryFrame
     end
     object lePassword: TLabeledEdit
       Left = 0
-      Top = 248
+      Top = 288
       Width = 361
       Height = 21
       EditLabel.Width = 50
@@ -117,7 +117,7 @@ object frmEntryFrame: TfrmEntryFrame
     end
     object btnAddToHistory: TButton
       Left = 272
-      Top = 275
+      Top = 315
       Width = 89
       Height = 25
       Caption = 'Add to history'
@@ -126,7 +126,7 @@ object frmEntryFrame: TfrmEntryFrame
     end
     object btnGenerate: TButton
       Left = 176
-      Top = 275
+      Top = 315
       Width = 89
       Height = 25
       Caption = 'Generate...'
@@ -138,6 +138,7 @@ object frmEntryFrame: TfrmEntryFrame
       Top = 48
       Width = 25
       Height = 21
+      Hint = 'Open address/URL'
       Caption = '8'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -145,13 +146,35 @@ object frmEntryFrame: TfrmEntryFrame
       Font.Name = 'Webdings'
       Font.Style = []
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
       OnClick = btnOpenClick
+    end
+    object leLogin: TLabeledEdit
+      Left = 0
+      Top = 208
+      Width = 361
+      Height = 21
+      EditLabel.Width = 103
+      EditLabel.Height = 13
+      EditLabel.Caption = 'Login, account name:'
+      TabOrder = 7
+    end
+    object leEmail: TLabeledEdit
+      Left = 0
+      Top = 248
+      Width = 361
+      Height = 21
+      EditLabel.Width = 74
+      EditLabel.Height = 13
+      EditLabel.Caption = 'Account e-mail:'
+      TabOrder = 8
     end
   end
   object pmHistoryMenu: TPopupMenu
     OnPopup = pmHistoryMenuPopup
-    Top = 272
+    Top = 320
     object pm_hm_Remove: TMenuItem
       Caption = 'Remove'
       ShortCut = 46

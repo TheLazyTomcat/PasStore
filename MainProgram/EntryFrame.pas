@@ -24,11 +24,13 @@ type
     lblNotes: TLabel;
     meNotes: TMemo;
     bvlHorSplit: TBevel;
+    leLogin: TLabeledEdit;
+    leEmail: TLabeledEdit;        
     lePassword: TLabeledEdit;
     btnGenerate: TButton;
     btnAddToHistory: TButton;
     lblHistory: TLabel;
-    lvHistory: TListView; 
+    lvHistory: TListView;
     pmHistoryMenu: TPopupMenu;
     pm_hm_Remove: TMenuItem;
     N1: TMenuItem;
@@ -92,6 +94,8 @@ If Assigned(Entry) then
     lblName.Caption := LocalEntry.Name;
     leAddress.Text := LocalEntry.Address;
     meNotes.Text := LocalEntry.Notes;
+    leLogin.Text := LocalEntry.Login;
+    leEmail.Text := LocalEntry.Email;
     lePassword.Text := LocalEntry.Password;
     ListHistory;
   end;
@@ -105,6 +109,8 @@ If Assigned(Entry) then
   begin
     LocalEntry.Address := leAddress.Text;
     LocalEntry.Notes := meNotes.Text;
+    LocalEntry.Login := leLogin.Text;
+    LocalEntry.Email := leEmail.Text;
     LocalEntry.Password := lePassword.Text;
     Entry^ := LocalEntry;
   end;
