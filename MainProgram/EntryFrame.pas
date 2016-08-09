@@ -172,7 +172,7 @@ begin
 If lvHistory.ItemIndex >= 0 then
   If MessageDlg('Are you sure you want to remove this password from history?',mtConfirmation,[mbYes,mbNo],0) = mrYes then
     begin
-      For i := lvHistory.ItemIndex to Pred(High(LocalEntry.History)) do
+      For i := (Pred(lvHistory.Items.Count) - lvHistory.ItemIndex) to Pred(High(LocalEntry.History)) do
         LocalEntry.History[i] := LocalEntry.History[i + 1];
       SetLength(LocalEntry.History,Length(LocalEntry.History) - 1);
       ListHistory;  
