@@ -87,6 +87,7 @@ type
     // animation counters
     acntNothingFound: Integer;
     acntSearching:    Integer;
+    acntSaved:        Integer;
   protected
     Unlocked: Boolean;
     Manager:  TPSTManager;
@@ -125,6 +126,7 @@ uses
 const
   ANIM_NOTHINGFOUND = 1;
   ANIM_SEARCHING    = 2;
+  ANIM_SAVED        = 3;
 
 procedure TfMainForm.RunAnimation(ID: Integer);
 begin
@@ -140,6 +142,11 @@ case ID of
       begin
         acntSearching := 5;
         leSearchFor.Color := clYellow;
+      end;
+  ANIM_SAVED:
+      begin
+        acntSaved := 20;
+        sbStatusBar.Panels[1].Text := 'Saved';
       end;
 end;
 tmrAnimTimer.Enabled := True;
@@ -429,6 +436,7 @@ CurrentIndex := Manager.CurrentEntryIdx;
 try
   Manager.CurrentEntryIdx := -2;
   Manager.Save;
+  RunAnimation(ANIM_SAVED);
 finally
   Manager.CurrentEntryIdx := CurrentIndex;
 end;
@@ -521,7 +529,9 @@ case DecAndGet(acntNothingFound) of
 end;
 If DecAndGet(acntSearching) = 1 then
   leSearchFor.Color := clWindow;
-tmrAnimTimer.Enabled := (acntNothingFound + acntSearching) > 0;
+If DecAndGet(acntSaved) = 1 then
+  sbStatusBar.Panels[1].Text := '';
+tmrAnimTimer.Enabled := (acntNothingFound + acntSearching + acntSaved) > 0;
 end;
 
 end.
