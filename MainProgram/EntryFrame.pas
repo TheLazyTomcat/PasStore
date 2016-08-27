@@ -24,11 +24,13 @@ type
     lblNotes: TLabel;
     meNotes: TMemo;
     bvlHorSplit: TBevel;
+    leLogin: TLabeledEdit;
+    leEmail: TLabeledEdit;        
     lePassword: TLabeledEdit;
     btnGenerate: TButton;
     btnAddToHistory: TButton;
     lblHistory: TLabel;
-    lvHistory: TListView; 
+    lvHistory: TListView;
     pmHistoryMenu: TPopupMenu;
     pm_hm_Remove: TMenuItem;
     N1: TMenuItem;
@@ -92,6 +94,8 @@ If Assigned(Entry) then
     lblName.Caption := LocalEntry.Name;
     leAddress.Text := LocalEntry.Address;
     meNotes.Text := LocalEntry.Notes;
+    leLogin.Text := LocalEntry.Login;
+    leEmail.Text := LocalEntry.Email;
     lePassword.Text := LocalEntry.Password;
     ListHistory;
   end;
@@ -105,6 +109,8 @@ If Assigned(Entry) then
   begin
     LocalEntry.Address := leAddress.Text;
     LocalEntry.Notes := meNotes.Text;
+    LocalEntry.Login := leLogin.Text;
+    LocalEntry.Email := leEmail.Text;
     LocalEntry.Password := lePassword.Text;
     Entry^ := LocalEntry;
   end;
@@ -166,7 +172,7 @@ begin
 If lvHistory.ItemIndex >= 0 then
   If MessageDlg('Are you sure you want to remove this password from history?',mtConfirmation,[mbYes,mbNo],0) = mrYes then
     begin
-      For i := lvHistory.ItemIndex to Pred(High(LocalEntry.History)) do
+      For i := (Pred(lvHistory.Items.Count) - lvHistory.ItemIndex) to Pred(High(LocalEntry.History)) do
         LocalEntry.History[i] := LocalEntry.History[i + 1];
       SetLength(LocalEntry.History,Length(LocalEntry.History) - 1);
       ListHistory;  

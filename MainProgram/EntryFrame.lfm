@@ -2,38 +2,38 @@ object frmEntryFrame: TfrmEntryFrame
   Left = 0
   Height = 457
   Top = 0
-  Width = 360
+  Width = 361
   ClientHeight = 457
-  ClientWidth = 360
+  ClientWidth = 361
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   ParentFont = False
   TabOrder = 0
   DesignLeft = 908
-  DesignTop = 175
+  DesignTop = 148
   object pnlMainPanel: TPanel
     Left = 0
     Height = 457
     Top = 0
-    Width = 360
+    Width = 361
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 457
-    ClientWidth = 360
+    ClientWidth = 361
     TabOrder = 0
     object shpNameBackground: TShape
       Left = 0
       Height = 25
       Top = 0
-      Width = 360
+      Width = 361
       Pen.Style = psClear
     end
     object lblName: TLabel
       Left = 0
       Height = 25
       Top = 0
-      Width = 360
+      Width = 361
       Alignment = taCenter
       AutoSize = False
       Caption = 'lblName'
@@ -48,7 +48,7 @@ object frmEntryFrame: TfrmEntryFrame
     object lblHistory: TLabel
       Left = 0
       Height = 13
-      Top = 304
+      Top = 342
       Width = 38
       Caption = 'History:'
       ParentColor = False
@@ -64,23 +64,23 @@ object frmEntryFrame: TfrmEntryFrame
     object bvlHorSplit: TBevel
       Left = 0
       Height = 9
-      Top = 222
-      Width = 360
+      Top = 182
+      Width = 361
       Shape = bsTopLine
     end
     object meNotes: TMemo
       Left = 0
-      Height = 129
+      Height = 84
       Top = 86
-      Width = 360
+      Width = 361
       ScrollBars = ssVertical
       TabOrder = 2
     end
     object lvHistory: TListView
       Left = 0
-      Height = 137
-      Top = 318
-      Width = 360
+      Height = 97
+      Top = 358
+      Width = 361
       Columns = <      
         item
           Caption = 'Time of addition'
@@ -100,16 +100,16 @@ object frmEntryFrame: TfrmEntryFrame
     object lePassword: TLabeledEdit
       Left = 0
       Height = 21
-      Top = 246
-      Width = 360
+      Top = 286
+      Width = 361
       EditLabel.AnchorSideLeft.Control = lePassword
       EditLabel.AnchorSideRight.Control = lePassword
       EditLabel.AnchorSideRight.Side = asrBottom
       EditLabel.AnchorSideBottom.Control = lePassword
       EditLabel.Left = 0
       EditLabel.Height = 13
-      EditLabel.Top = 230
-      EditLabel.Width = 360
+      EditLabel.Top = 270
+      EditLabel.Width = 361
       EditLabel.Caption = 'Password:'
       EditLabel.ParentColor = False
       TabOrder = 3
@@ -134,7 +134,7 @@ object frmEntryFrame: TfrmEntryFrame
     object btnAddToHistory: TButton
       Left = 272
       Height = 25
-      Top = 273
+      Top = 313
       Width = 89
       Caption = 'Add to history'
       OnClick = btnAddToHistoryClick
@@ -143,7 +143,7 @@ object frmEntryFrame: TfrmEntryFrame
     object btnGenerate: TButton
       Left = 176
       Height = 25
-      Top = 273
+      Top = 313
       Width = 89
       Caption = 'Generate...'
       OnClick = btnGenerateClick
@@ -152,6 +152,7 @@ object frmEntryFrame: TfrmEntryFrame
     object btnOpen: TButton
       Left = 336
       Height = 21
+      Hint = 'Open address/URL'
       Top = 46
       Width = 25
       Caption = '8'
@@ -160,12 +161,48 @@ object frmEntryFrame: TfrmEntryFrame
       Font.Name = 'Webdings'
       OnClick = btnOpenClick
       ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 1
+    end
+    object leLogin: TLabeledEdit
+      Left = 0
+      Height = 21
+      Top = 206
+      Width = 361
+      EditLabel.AnchorSideLeft.Control = leLogin
+      EditLabel.AnchorSideRight.Control = leLogin
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = leLogin
+      EditLabel.Left = 0
+      EditLabel.Height = 13
+      EditLabel.Top = 190
+      EditLabel.Width = 361
+      EditLabel.Caption = 'Login, account name:'
+      EditLabel.ParentColor = False
+      TabOrder = 7
+    end
+    object leEmail: TLabeledEdit
+      Left = 0
+      Height = 21
+      Top = 246
+      Width = 361
+      EditLabel.AnchorSideLeft.Control = leEmail
+      EditLabel.AnchorSideRight.Control = leEmail
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = leEmail
+      EditLabel.Left = 0
+      EditLabel.Height = 13
+      EditLabel.Top = 230
+      EditLabel.Width = 361
+      EditLabel.Caption = 'Account e-mail:'
+      EditLabel.ParentColor = False
+      TabOrder = 8
     end
   end
   object pmHistoryMenu: TPopupMenu
     OnPopup = pmHistoryMenuPopup
-    top = 272
+    top = 320
     object pm_hm_Remove: TMenuItem
       Caption = 'Remove'
       ShortCut = 46
