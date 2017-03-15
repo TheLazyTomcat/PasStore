@@ -9,11 +9,14 @@
 
   CRC32 Calculation
 
-  ©František Milt 2016-03-01
+  ©František Milt 2016-12-18
 
-  Version 1.4.8
+  Version 1.4.9
 
   Polynomial 0x04c11db7
+
+  Dependencies:
+    AuxTypes - github.com/ncs-sniper/Lib.AuxTypes
 
 ===============================================================================}
 unit CRC32;
@@ -36,6 +39,12 @@ unit CRC32;
 {$IF defined(FPC) and not defined(PurePascal)}
   {$ASMMODE Intel}
 {$IFEND}
+
+{$IFDEF FPC}
+  {$MODE ObjFPC}{$H+}
+  // Activate symbol BARE_FPC if you want to compile this unit outside of Lazarus.
+  {.$DEFINE BARE_FPC}
+{$ENDIF}
 
 interface
 
@@ -81,7 +90,7 @@ implementation
 
 uses
   SysUtils
-  {$IF Defined(FPC) and not Defined(Unicode)}
+  {$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
   (*
     If compiler throws error that LazUTF8 unit cannot be found, you have to
     add LazUtils to required packages (Project > Project Inspector).
@@ -200,9 +209,9 @@ asm
 {     RAX (contains result), RCX, RDX, R8, R9                                  }
 {******************************************************************************}
 
-                MOV   EAX, RCX
-                CMP   R8, 0         // check whether size is larger than zero...
-                JNA   @RoutineEnd   // ...end calculation when isn't
+                MOV   EAX, ECX
+                CMP   R8,  0        // check whether size is zero...
+                JZ    @RoutineEnd   // ...end calculation when it is
 
                 XCHG  R8, RCX       // RCX now contains size, R8 old CRC32 value
                 NOT   R8D
@@ -215,7 +224,9 @@ asm
                 SHR   R8D, 8
                 XOR   R8D, EAX
                 INC   RDX
-                LOOP  @MainLoop
+
+                DEC   RCX
+                JNZ   @MainLoop
 
                 NOT   R8D
                 MOV   EAX, R8D
@@ -232,8 +243,8 @@ asm
 {     EAX (contains result), EBX (value preserved), ECX, EDX                   }
 {******************************************************************************}
 
-                CMP   ECX, 0        // check whether size is larger than zero...
-                JNA   @RoutineEnd   // ...end calculation when isn't
+                CMP   ECX, 0        // check whether size is zero...
+                JZ    @RoutineEnd   // ...end calculation when it is
 
                 PUSH  EBX           // EBX register value must be preserved
                 MOV   EBX, EDX      // EBX now contains pointer to Buffer
@@ -247,7 +258,9 @@ asm
                 SHR   EAX, 8
                 XOR   EAX, EDX
                 INC   EBX
-                LOOP  @MainLoop
+
+                DEC   ECX
+                JNZ   @MainLoop
 
                 NOT   EAX
                 POP   EBX           // restore EBX register
@@ -350,7 +363,7 @@ Function FileCRC32(const FileName: String): TCRC32;
 var
   FileStream: TFileStream;
 begin
-{$IF Defined(FPC) and not Defined(Unicode)}
+{$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
 FileStream := TFileStream.Create(UTF8ToSys(FileName), fmOpenRead or fmShareDenyWrite);
 {$ELSE}
 FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);

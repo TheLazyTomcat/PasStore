@@ -21,6 +21,9 @@
     - Base85 encoding is by-default using Z85 alphabet with undescore ("_", #95)
       as an all-zero compression letter.
 
+  Dependencies:
+    AuxTypes - github.com/ncs-sniper/Lib.AuxTypes
+
 ===============================================================================}
 unit BinTextEnc;
 
@@ -31,6 +34,10 @@ unit BinTextEnc;
     {$ASMMODE Intel}
   {$ENDIF}
 {$IFEND}
+
+{$IFDEF FPC}
+  {$MODE ObjFPC}{$H+}
+{$ENDIF}
 
 interface
 
