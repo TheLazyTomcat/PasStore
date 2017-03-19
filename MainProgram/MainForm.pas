@@ -54,13 +54,21 @@ type
     pm_entry_SortFwd: TMenuItem;
     pm_entry_SortRev: TMenuItem;
     N4: TMenuItem;
+    pm_entry_Search: TMenuItem;
+    pm_entry_FindPrev: TMenuItem;
     pm_entry_FindNext: TMenuItem;
     N5: TMenuItem;
     pm_entry_SaveNow: TMenuItem;
     pm_entry_ChangePswd: TMenuItem;
+    N6: TMenuItem;
+    pm_entry_CloseNoSave: TMenuItem;
     cbSearchHistory: TCheckBox;
     actlActionList: TActionList;
     actSearchShortcut: TAction;
+    actFindNext: TAction;
+    actFindPrev: TAction;
+    actSave: TAction;
+    actChangePswd: TAction;
     tmrAnimTimer: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -75,23 +83,29 @@ type
     procedure pm_entry_MoveDownClick(Sender: TObject);
     procedure pm_entry_SortFwdClick(Sender: TObject);
     procedure pm_entry_SortRevClick(Sender: TObject);
+    procedure pm_entry_SearchClick(Sender: TObject);
+    procedure pm_entry_FindPrevClick(Sender: TObject);
     procedure pm_entry_FindNextClick(Sender: TObject);
-    procedure pm_entry_SaveNowClick(Sender: TObject);    
+    procedure pm_entry_SaveNowClick(Sender: TObject);
     procedure pm_entry_ChangePswdClick(Sender: TObject);
+    procedure pm_entry_CloseNoSaveClick(Sender: TObject);
     procedure leSearchForKeyPress(Sender: TObject; var Key: Char);
     procedure btnFindPrevClick(Sender: TObject);
     procedure btnFindNextClick(Sender: TObject);
     procedure actSearchShortcutExecute(Sender: TObject);
+    procedure actFindPrevExecute(Sender: TObject);
+    procedure actFindNextExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
+    procedure actChangePswdExecute(Sender: TObject);
     procedure tmrAnimTimerTimer(Sender: TObject);
   private
     // animation counters
-    acntNothingFound: Integer;
-    acntSearching:    Integer;
-    acntSaved:        Integer;
+    AnimCounters: array[0..4] of Integer;
   protected
     Unlocked: Boolean;
     Manager:  TPSTManager;
-    procedure RunAnimation(ID: Integer);
+    procedure EntryFrameActReqHandler(Sender: TObject; Action: Integer);
+    procedure RunAnimation(Animation: Integer);
   public
     { Public declarations }
     procedure AskForMasterPassword;
@@ -124,29 +138,50 @@ uses
 {$ENDIF}
 
 const
-  ANIM_NOTHINGFOUND = 1;
-  ANIM_SEARCHING    = 2;
-  ANIM_SAVED        = 3;
+  ANIM_NOTHINGFOUND = 0;
+  ANIM_SEARCHING    = 1;
+  ANIM_SAVED        = 2;
+  ANIM_EMPTYSEARCH  = 3;
+  ANIM_NOMOREFOUND  = 4;
 
-procedure TfMainForm.RunAnimation(ID: Integer);
+procedure TfMainForm.EntryFrameActReqHandler(Sender: TObject; Action: Integer);
 begin
-case ID of
+case Action of
+  EF_ACTREQ_RENAME: pm_entry_Rename.OnClick(nil);
+end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.RunAnimation(Animation: Integer);
+begin
+case Animation of
   ANIM_NOTHINGFOUND:
       begin
-        acntNothingFound := 20;
+        AnimCounters[ANIM_NOTHINGFOUND] := 20;
         leSearchFor.Color := clRed;
         sbStatusBar.Panels[1].Text := 'Nothing found';
         Beep;
       end;
   ANIM_SEARCHING:
       begin
-        acntSearching := 5;
+        AnimCounters[ANIM_SEARCHING] := 5;
         leSearchFor.Color := clYellow;
       end;
   ANIM_SAVED:
       begin
-        acntSaved := 20;
+        AnimCounters[ANIM_SAVED] := 20;
         sbStatusBar.Panels[1].Text := 'Saved';
+      end;
+  ANIM_EMPTYSEARCH:
+      begin
+        AnimCounters[ANIM_EMPTYSEARCH] := 20;
+        sbStatusBar.Panels[1].Text := 'Empty search expression';
+      end;
+  ANIM_NOMOREFOUND:
+      begin
+        AnimCounters[ANIM_NOMOREFOUND] := 20;
+        sbStatusBar.Panels[1].Text := 'No more entry found';
       end;
 end;
 tmrAnimTimer.Enabled := True;
@@ -194,6 +229,7 @@ end;
 procedure TfMainForm.FormCreate(Sender: TObject);
 begin
 sbStatusBar.DoubleBuffered := True;
+frmEntryFrame.OnActionRequired := EntryFrameActReqHandler;
 Manager := TPSTManager.Create;
 {$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
 Manager.FileName := ExtractFilePath(SysToUTF8(ParamStr(0))) + 'PasStore.dat';
@@ -202,8 +238,7 @@ Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
 {$IFEND}
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
-acntNothingFound := 0;
-acntSearching := 0;
+Fillchar(AnimCounters,SizeOf(AnimCounters),0);
 Unlocked := False;
 // Load copyright info
 with TWinFileInfo.Create(WFI_LS_VersionInfoAndFFI) do
@@ -290,7 +325,6 @@ pm_entry_MoveUp.Enabled := lbEntries.ItemIndex > 0;
 pm_entry_MoveDown.Enabled := (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0);
 pm_entry_SortFwd.Enabled := lbEntries.Count > 1;
 pm_entry_SortRev.Enabled := lbEntries.Count > 1;
-pm_entry_FindNext.Enabled := leSearchFor.Text <> '';
 end;
 
 //------------------------------------------------------------------------------
@@ -421,9 +455,59 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
+procedure TfMainForm.pm_entry_SearchClick(Sender: TObject);
 begin
-btnFindNext.OnClick(nil);
+leSearchFor.SetFocus;
+leSearchFor.SelectAll;
+RunAnimation(ANIM_SEARCHING);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_FindPrevClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,True,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        If Index = lbEntries.ItemIndex then
+          RunAnimation(ANIM_NOMOREFOUND)
+        else
+          begin
+            lbEntries.ItemIndex := Index;
+            lbEntries.OnClick(nil);
+          end;
+      end
+    else RunAnimation(ANIM_NOTHINGFOUND);
+  end
+else RunAnimation(ANIM_EMPTYSEARCH);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
+var
+  Index:  Integer;
+begin
+If leSearchFor.Text <> '' then
+  begin
+    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,False,cbCaseSensitive.Checked,cbSearchHistory.Checked);
+    If Index >= 0 then
+      begin
+        If Index = lbEntries.ItemIndex then
+          RunAnimation(ANIM_NOMOREFOUND)
+        else
+          begin
+            lbEntries.ItemIndex := Index;
+            lbEntries.OnClick(nil);
+          end;
+      end
+    else RunAnimation(ANIM_NOTHINGFOUND);
+  end
+else RunAnimation(ANIM_EMPTYSEARCH);
 end;
 
 //------------------------------------------------------------------------------
@@ -454,6 +538,18 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TfMainForm.pm_entry_CloseNoSaveClick(Sender: TObject);
+begin
+If MessageDlg('Are you sure you want to close PasStore without saving?',
+              mtConfirmation,[mbYes,mbCancel],0) = mrYes then
+  begin
+    Unlocked := False;
+    Close;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.leSearchForKeyPress(Sender: TObject; var Key: Char);
 begin
 If Key = #13 then
@@ -466,44 +562,22 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TfMainForm.btnFindPrevClick(Sender: TObject);
-var
-  Index:  Integer;
 begin
-If leSearchFor.Text <> '' then
-  begin
-    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,True,cbCaseSensitive.Checked,cbSearchHistory.Checked);
-    If Index >= 0 then
-      begin
-        lbEntries.ItemIndex := Index;
-        lbEntries.OnClick(nil);
-      end
-    else RunAnimation(ANIM_NOTHINGFOUND);
-  end;
+pm_entry_FindPrev.OnClick(nil);
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TfMainForm.btnFindNextClick(Sender: TObject);
-var
-  Index:  Integer;
 begin
-If leSearchFor.Text <> '' then
-  begin
-    Index := Manager.Find(leSearchFor.Text,lbEntries.ItemIndex,False,cbCaseSensitive.Checked,cbSearchHistory.Checked);
-    If Index >= 0 then
-      begin
-        lbEntries.ItemIndex := Index;
-        lbEntries.OnClick(nil);
-      end
-    else RunAnimation(ANIM_NOTHINGFOUND);
-end;
+pm_entry_FindNext.OnClick(nil);
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TfMainForm.actSearchShortcutExecute(Sender: TObject);
 begin
-If fMainForm.Visible and fMainForm.Active and not leSearchFor.Focused then
+If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
   begin
     leSearchFor.SetFocus;
     leSearchFor.SelectAll;
@@ -513,7 +587,41 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TfMainForm.actFindPrevExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
+  pm_entry_FindPrev.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.actFindNextExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
+  pm_entry_FindNext.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.actSaveExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
+  pm_entry_SaveNow.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfMainForm.actChangePswdExecute(Sender: TObject);
+begin
+If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
+  pm_entry_ChangePswd.OnClick(nil);
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
+var
+  i,Counter:  Integer;
 
   Function DecAndGet(var Value: Integer): Integer;
   begin
@@ -523,15 +631,22 @@ procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
   end;
 
 begin
-case DecAndGet(acntNothingFound) of
+case DecAndGet(AnimCounters[ANIM_NOTHINGFOUND]) of
   14: leSearchFor.Color := clWindow;
    1: sbStatusBar.Panels[1].Text := '';
 end;
-If DecAndGet(acntSearching) = 1 then
+If DecAndGet(AnimCounters[ANIM_SEARCHING]) = 1 then
   leSearchFor.Color := clWindow;
-If DecAndGet(acntSaved) = 1 then
+If DecAndGet(AnimCounters[ANIM_SAVED]) = 1 then
   sbStatusBar.Panels[1].Text := '';
-tmrAnimTimer.Enabled := (acntNothingFound + acntSearching + acntSaved) > 0;
+If DecAndGet(AnimCounters[ANIM_EMPTYSEARCH]) = 1 then
+  sbStatusBar.Panels[1].Text := '';
+If DecAndGet(AnimCounters[ANIM_NOMOREFOUND]) = 1 then
+  sbStatusBar.Panels[1].Text := '';
+Counter := 0;
+For i := Low(AnimCounters) to High(AnimCounters) do
+  Counter := Counter + AnimCounters[i];
+tmrAnimTimer.Enabled := Counter > 0;
 end;
 
 end.

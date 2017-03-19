@@ -10,8 +10,6 @@ object frmEntryFrame: TfrmEntryFrame
   Font.Name = 'Tahoma'
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 908
-  DesignTop = 148
   object pnlMainPanel: TPanel
     Left = 0
     Height = 457
@@ -44,13 +42,14 @@ object frmEntryFrame: TfrmEntryFrame
       Layout = tlCenter
       ParentColor = False
       ParentFont = False
+      OnDblClick = lblNameDblClick
     end
     object lblHistory: TLabel
       Left = 0
       Height = 13
       Top = 342
-      Width = 38
-      Caption = 'History:'
+      Width = 86
+      Caption = 'Password history:'
       ParentColor = False
     end
     object lblNotes: TLabel

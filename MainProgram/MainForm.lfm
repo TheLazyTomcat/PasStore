@@ -1,7 +1,7 @@
 object fMainForm: TfMainForm
-  Left = 579
+  Left = 590
   Height = 611
-  Top = 121
+  Top = 112
   Width = 680
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
@@ -3337,7 +3337,7 @@ object fMainForm: TfMainForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.2.0'
   object lblEntries: TLabel
     Left = 8
     Height = 13
@@ -4156,8 +4156,8 @@ object fMainForm: TfMainForm
     Left = 144
     Height = 17
     Top = 564
-    Width = 128
-    Caption = 'Search through history'
+    Width = 136
+    Caption = 'Search password history'
     Checked = True
     State = cbChecked
     TabOrder = 5
@@ -4208,6 +4208,16 @@ object fMainForm: TfMainForm
     object N4: TMenuItem
       Caption = '-'
     end
+    object pm_entry_Search: TMenuItem
+      Caption = 'Search...'
+      ShortCut = 16454
+      OnClick = pm_entry_SearchClick
+    end
+    object pm_entry_FindPrev: TMenuItem
+      Caption = 'Find previous'
+      ShortCut = 8306
+      OnClick = pm_entry_FindPrevClick
+    end
     object pm_entry_FindNext: TMenuItem
       Caption = 'Find next'
       ShortCut = 114
@@ -4226,6 +4236,13 @@ object fMainForm: TfMainForm
       ShortCut = 16464
       OnClick = pm_entry_ChangePswdClick
     end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object pm_entry_CloseNoSave: TMenuItem
+      Caption = 'Close without saving'
+      OnClick = pm_entry_CloseNoSaveClick
+    end
   end
   object actlActionList: TActionList
     left = 616
@@ -4233,6 +4250,26 @@ object fMainForm: TfMainForm
       Caption = 'actSearchShortcut'
       OnExecute = actSearchShortcutExecute
       ShortCut = 16454
+    end
+    object actFindPrev: TAction
+      Caption = 'actFindPrev'
+      OnExecute = actFindPrevExecute
+      ShortCut = 8306
+    end
+    object actFindNext: TAction
+      Caption = 'actFindNext'
+      OnExecute = actFindNextExecute
+      ShortCut = 114
+    end
+    object actSave: TAction
+      Caption = 'actSave'
+      OnExecute = actSaveExecute
+      ShortCut = 16467
+    end
+    object actChangePswd: TAction
+      Caption = 'actChangePswd'
+      OnExecute = actChangePswdExecute
+      ShortCut = 16464
     end
   end
   object tmrAnimTimer: TTimer

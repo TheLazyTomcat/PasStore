@@ -526,6 +526,7 @@ Function TPSTManager.Find(const SubString: String; FromEntry: Integer = 0; Backw
 var
   i:      Integer;
   Index:  Integer;
+  Coef:   Integer;
 
   Function SearchEntry(EntryIndex: Integer): Boolean;
 
@@ -566,32 +567,22 @@ var
 
 begin
 Result := -1;
+If Backward then
+  Coef := -1
+else
+  Coef := 1;
 If ValidIndex(FromEntry) then
-  If Backward then
-    begin
-      FromEntry := WrapIndex(-1);
-      For i := High(fEntries) downto Low(fEntries) do
-        begin
-          Index := WrapIndex(i);
-          If SearchEntry(Index) then
-            begin
-              Result := Index;
-              Break{For i};
-            end;        
-        end;
-    end
-  else
-    begin
-      FromEntry := WrapIndex(1);
-      For i := Low(fEntries) to High(fEntries) do
-        begin
-          Index := WrapIndex(i);
-          If SearchEntry(Index) then
-            begin
-              Result := Index;
-              Break{For i};
-            end;
-        end;
+  begin
+    FromEntry := WrapIndex(1 * Coef);
+    For i := Low(fEntries) to High(fEntries) do
+      begin
+        Index := WrapIndex(i * Coef);
+        If SearchEntry(Index) then
+          begin
+            Result := Index;
+            Break{For i};
+          end;
+      end;
   end;
 end;
 
