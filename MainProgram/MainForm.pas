@@ -304,7 +304,7 @@ procedure TfMainForm.lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; S
 var
   Index:  Integer;
 begin
-If (Button = mbRight) and (Shift = [ssRight]) then
+If Button = mbRight then
   begin
     Index := lbEntries.ItemAtPos(Point(X,Y),True);
     If Index >= 0 then
