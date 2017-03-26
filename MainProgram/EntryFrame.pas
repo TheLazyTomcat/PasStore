@@ -14,7 +14,12 @@ uses
   StdCtrls, ComCtrls, Menus,
   PST_Manager;
 
+const
+  EF_ACTREQ_RENAME = 1;
+
 type
+  TEntryFrameActionRequiredEvent = procedure(Sender: TObject; Action: Integer) of object;
+
   TfrmEntryFrame = class(TFrame)
     pnlMainPanel: TPanel;
     shpNameBackground: TShape;
@@ -35,6 +40,7 @@ type
     pm_hm_Remove: TMenuItem;
     N1: TMenuItem;
     pm_hm_Copy: TMenuItem;
+    procedure lblNameDblClick(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure btnGenerateClick(Sender: TObject);
     procedure btnAddToHistoryClick(Sender: TObject);
@@ -44,11 +50,13 @@ type
   private
     { Private declarations }
   protected
+    fOnActionRequired:  TEntryFrameActionRequiredEvent;
     procedure ListHistory;
   public
     LocalEntry: TPSTEntry;
     procedure SetEntry(Sender: TObject; Entry: PPSTEntry);
     procedure GetEntry(Sender: TObject; Entry: PPSTEntry);
+    property OnActionRequired: TEntryFrameActionRequiredEvent read fOnActionRequired write fOnActionRequired;
   end;
 
 implementation
@@ -118,6 +126,14 @@ end;
 
 //==============================================================================
 
+procedure TfrmEntryFrame.lblNameDblClick(Sender: TObject);
+begin
+If Assigned(fOnActionRequired) then
+  fOnActionRequired(Self,EF_ACTREQ_RENAME);
+end;
+
+//------------------------------------------------------------------------------
+
 procedure TfrmEntryFrame.btnOpenClick(Sender: TObject);
 begin
 If leAddress.Text <> '' then
@@ -133,9 +149,29 @@ end;
 procedure TfrmEntryFrame.btnGenerateClick(Sender: TObject);
 var
   NewPassword:  String;
+  InHistory:    Boolean;
 begin
+LocalEntry.Password := lePassword.Text;
 If fGeneratorForm.GeneratorPrompt(NewPassword) then
   begin
+    If Length(LocalEntry.History) > 0 then
+      InHistory := AnsiSameStr(LocalEntry.History[High(LocalEntry.History)].Password,LocalEntry.Password)
+    else
+      InHistory := False;
+    If not AnsiSameStr(LocalEntry.Password,NewPassword) and not InHistory then
+      begin
+        case MessageDlg('New password will rewrite the currently stored one.' + sLineBreak +
+           'Save current password to history?',mtWarning,[mbYes,mbNo,mbCancel],0) of
+          mrYes:    begin
+                      SetLength(LocalEntry.History,Length(LocalEntry.History) + 1);
+                      LocalEntry.History[High(LocalEntry.History)].Time := Now;
+                      LocalEntry.History[High(LocalEntry.History)].Password := LocalEntry.Password;
+                      ListHistory;
+                    end;
+          mrNo:;    // no action
+          mrCancel: Exit;
+        end;
+      end;
     LocalEntry.Password := NewPassword;
     lePassword.Text := NewPassword;
   end;

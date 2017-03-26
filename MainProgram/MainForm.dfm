@@ -1,6 +1,6 @@
 object fMainForm: TfMainForm
-  Left = 579
-  Top = 121
+  Left = 590
+  Top = 112
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'PasStore - Password storage application'
@@ -13705,9 +13705,9 @@ object fMainForm: TfMainForm
   object cbSearchHistory: TCheckBox
     Left = 144
     Top = 564
-    Width = 129
+    Width = 145
     Height = 17
-    Caption = 'Search through history'
+    Caption = 'Search password history'
     Checked = True
     State = cbChecked
     TabOrder = 5
@@ -13761,6 +13761,16 @@ object fMainForm: TfMainForm
     object N4: TMenuItem
       Caption = '-'
     end
+    object pm_entry_Search: TMenuItem
+      Caption = 'Search...'
+      ShortCut = 16454
+      OnClick = pm_entry_SearchClick
+    end
+    object pm_entry_FindPrev: TMenuItem
+      Caption = 'Find previous'
+      ShortCut = 8306
+      OnClick = pm_entry_FindPrevClick
+    end
     object pm_entry_FindNext: TMenuItem
       Caption = 'Find next'
       ShortCut = 114
@@ -13779,6 +13789,13 @@ object fMainForm: TfMainForm
       ShortCut = 16464
       OnClick = pm_entry_ChangePswdClick
     end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object pm_entry_CloseNoSave: TMenuItem
+      Caption = 'Close without saving'
+      OnClick = pm_entry_CloseNoSaveClick
+    end
   end
   object actlActionList: TActionList
     Left = 616
@@ -13786,6 +13803,26 @@ object fMainForm: TfMainForm
       Caption = 'actSearchShortcut'
       ShortCut = 16454
       OnExecute = actSearchShortcutExecute
+    end
+    object actFindPrev: TAction
+      Caption = 'actFindPrev'
+      ShortCut = 8306
+      OnExecute = actFindPrevExecute
+    end
+    object actFindNext: TAction
+      Caption = 'actFindNext'
+      ShortCut = 114
+      OnExecute = actFindNextExecute
+    end
+    object actSave: TAction
+      Caption = 'actSave'
+      ShortCut = 16467
+      OnExecute = actSaveExecute
+    end
+    object actChangePswd: TAction
+      Caption = 'actChangePswd'
+      ShortCut = 16464
+      OnExecute = actChangePswdExecute
     end
   end
   object tmrAnimTimer: TTimer

@@ -44,13 +44,14 @@ object frmEntryFrame: TfrmEntryFrame
       ParentFont = False
       Transparent = True
       Layout = tlCenter
+      OnDblClick = lblNameDblClick
     end
     object lblHistory: TLabel
       Left = 0
       Top = 344
-      Width = 38
+      Width = 86
       Height = 13
-      Caption = 'History:'
+      Caption = 'Password history:'
     end
     object lblNotes: TLabel
       Left = 0
