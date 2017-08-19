@@ -158,7 +158,7 @@ If fGeneratorForm.GeneratorPrompt(NewPassword) then
       InHistory := AnsiSameStr(LocalEntry.History[High(LocalEntry.History)].Password,LocalEntry.Password)
     else
       InHistory := False;
-    If not AnsiSameStr(LocalEntry.Password,NewPassword) and not InHistory then
+    If not AnsiSameStr(LocalEntry.Password,NewPassword) and (Length(LocalEntry.Password) > 0) and not InHistory then
       begin
         case MessageDlg('New password will rewrite the currently stored one.' + sLineBreak +
            'Save current password to history?',mtWarning,[mbYes,mbNo,mbCancel],0) of

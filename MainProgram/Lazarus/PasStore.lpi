@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
@@ -18,7 +18,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="1"/>
-      <BuildNr Value="16"/>
+      <BuildNr Value="17"/>
       <Language Value="0405"/>
       <StringTable Comments="Application for passwords storage" CompanyName="František Milt" FileDescription="Password Storage Application" InternalName="PasStore" LegalCopyright="© 2016 František Milt" LegalTrademarks="PasStore" OriginalFilename="PasStore.exe" ProductName="PasStore" ProductVersion="1.0.0"/>
     </VersionInfo>
