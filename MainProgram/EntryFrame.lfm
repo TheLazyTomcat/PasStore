@@ -10,6 +10,8 @@ object frmEntryFrame: TfrmEntryFrame
   Font.Name = 'Tahoma'
   ParentFont = False
   TabOrder = 0
+  DesignLeft = 885
+  DesignTop = 223
   object pnlMainPanel: TPanel
     Left = 0
     Height = 457
@@ -149,7 +151,7 @@ object frmEntryFrame: TfrmEntryFrame
       TabOrder = 4
     end
     object btnOpen: TButton
-      Left = 336
+      Left = 334
       Height = 21
       Hint = 'Open address/URL'
       Top = 46
