@@ -9,12 +9,13 @@
 
   MD2 Hash Calculation
 
-  ©František Milt 2016-07-30
+  ©František Milt 2017-07-18
 
-  Version 1.1.5
+  Version 1.1.6
 
   Dependencies:
     AuxTypes - github.com/ncs-sniper/Lib.AuxTypes
+    StrRect  - github.com/ncs-sniper/Lib.StrRect
 
 ===============================================================================}
 unit MD2;
@@ -23,8 +24,6 @@ unit MD2;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
-  // Activate symbol BARE_FPC if you want to compile this unit outside of Lazarus.
-  {.$DEFINE BARE_FPC}
 {$ENDIF}
 
 interface
@@ -90,14 +89,7 @@ Function MD2_Hash(const Buffer; Size: TMemSize): TMD2Hash;
 implementation
 
 uses
-  SysUtils
-  {$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
-  (*
-    If compiler throws error that LazUTF8 unit cannot be found, you have to
-    add LazUtils to required packages (Project > Project Inspector).
-  *)
-  , LazUTF8
-  {$IFEND};
+  SysUtils, StrRect;
 
 const
 {$IFDEF LargeBuffers}
@@ -366,11 +358,7 @@ Function FileMD2(const FileName: String): TMD2Hash;
 var
   FileStream: TFileStream;
 begin
-{$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
-FileStream := TFileStream.Create(UTF8ToSys(FileName), fmOpenRead or fmShareDenyWrite);
-{$ELSE}
-FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
-{$IFEND}
+FileStream := TFileStream.Create(StrToRTL(FileName), fmOpenRead or fmShareDenyWrite);
 try
   Result := StreamMD2(FileStream);
 finally

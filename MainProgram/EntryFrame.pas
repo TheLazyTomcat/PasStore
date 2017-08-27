@@ -7,6 +7,8 @@
 -------------------------------------------------------------------------------}
 unit EntryFrame;
 
+{$INCLUDE '.\Source\PST_defs.inc'}
+
 interface
 
 uses
@@ -68,10 +70,7 @@ implementation
 {$ENDIF}
 
 uses
-  Windows, ShellAPI, ClipBrd, GeneratorForm
-{$IF Defined(FPC) and not Defined(Unicode)}
-  , LazUTF8
-{$IFEND};
+  Windows, ShellAPI, ClipBrd, GeneratorForm, StrRect;
 
 procedure TfrmEntryFrame.ListHistory;
 var
@@ -137,11 +136,7 @@ end;
 procedure TfrmEntryFrame.btnOpenClick(Sender: TObject);
 begin
 If leAddress.Text <> '' then
-{$IF Defined(FPC) and not Defined(Unicode)}
-  ShellExecute(0,'open',PChar(UTF8ToWinCP(leAddress.Text)),nil,nil,SW_SHOWNORMAL);
-{$ELSE}
-  ShellExecute(0,'open',PChar(leAddress.Text),nil,nil,SW_SHOWNORMAL);
-{$IFEND}
+  ShellExecute(0,'open',PChar(StrToWin(leAddress.Text)),nil,nil,SW_SHOWNORMAL);
 end;
 
 //------------------------------------------------------------------------------
@@ -158,7 +153,7 @@ If fGeneratorForm.GeneratorPrompt(NewPassword) then
       InHistory := AnsiSameStr(LocalEntry.History[High(LocalEntry.History)].Password,LocalEntry.Password)
     else
       InHistory := False;
-    If not AnsiSameStr(LocalEntry.Password,NewPassword) and not InHistory then
+    If not AnsiSameStr(LocalEntry.Password,NewPassword) and (Length(LocalEntry.Password) > 0) and not InHistory then
       begin
         case MessageDlg('New password will rewrite the currently stored one.' + sLineBreak +
            'Save current password to history?',mtWarning,[mbYes,mbNo,mbCancel],0) of

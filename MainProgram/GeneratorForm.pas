@@ -7,6 +7,8 @@
 -------------------------------------------------------------------------------}
 unit GeneratorForm;
 
+{$INCLUDE '.\Source\PST_defs.inc'}
+
 interface
 
 uses
@@ -49,8 +51,8 @@ implementation
 {$ENDIF}
 
 uses
-  AuxTypes, CRC32, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3,
-  BinTextEnc, BinaryStreaming;
+  AuxTypes, StrRect, CRC32, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3, BinTextEnc,
+  BinaryStreaming;
 
 Function TfGeneratorForm.GeneratorPrompt(out Output: String): Boolean;
 begin
@@ -116,11 +118,7 @@ var
   end;
 
 begin
-{$IFDEF Unicode}
-Seed := UTF8Encode(leSeed.Text);
-{$ELSE}
-Seed := AnsiToUTF8(leSeed.Text);
-{$ENDIF}
+Seed := StrToUTF8(leSeed.Text);
 case cbMethod.ItemIndex of
   0:  begin
         MD2Temp := BinaryCorrectMD2(AnsiStringMD2(Seed));

@@ -7,9 +7,7 @@
 -------------------------------------------------------------------------------}
 unit MainForm;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
+{$INCLUDE '.\Source\PST_defs.inc'}
 
 interface
 
@@ -19,9 +17,7 @@ uses
   PST_Manager;
 
 type
-
   { TfMainForm }
-
   TfMainForm = class(TForm)
     shpHeader: TShape;
     imgLogo: TImage;
@@ -119,17 +115,9 @@ implementation
 uses
   WinFileInfo,
   PromptForm, GeneratorForm
-{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
-  , LazFileUtils, LazUTF8
-{$IFEND};
-
-{$IF defined(CPU64) or defined(CPU64BITS)}
-  {$DEFINE 64bit}
-{$ELSEIF defined(CPU16)}
-  {$MESSAGE FATAL 'Unsupported CPU.'}
-{$ELSE}
-  {$DEFINE 32bit}
-{$IFEND}
+{$IFDEF FPC_NonUnicode_NoUTF8RTL}
+  , LazFileUtils
+{$ENDIF};
 
 {$IFDEF FPC}
   {$R *.lfm}
@@ -203,11 +191,11 @@ try
   If fPromptForm.ShowPrompt('Enter master password','Master password:','',Pswd,True) then
     begin
       Manager.MasterPassword := Pswd;
-    {$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
+    {$IFDEF FPC_NonUnicode_NoUTF8RTL}
       If FileExistsUTF8(Manager.FileName) then
     {$ELSE}
       If FileExists(Manager.FileName) then
-    {$IFEND}
+    {$ENDIF}
         If not Manager.Load then
           begin
             MessageDlg('Wrong master password.',mtError,[mbOk],0);
@@ -231,11 +219,7 @@ begin
 sbStatusBar.DoubleBuffered := True;
 frmEntryFrame.OnActionRequired := EntryFrameActReqHandler;
 Manager := TPSTManager.Create;
-{$IF Defined(FPC) and not Defined(Unicode) and (FPC_FULLVERSION < 20701)}
-Manager.FileName := ExtractFilePath(SysToUTF8(ParamStr(0))) + 'PasStore.dat';
-{$ELSE}
 Manager.FileName := ExtractFilePath(ParamStr(0)) + 'PasStore.dat';
-{$IFEND}
 Manager.OnEntrySet := frmEntryFrame.SetEntry;
 Manager.OnEntryGet := frmEntryFrame.GetEntry;
 Fillchar(AnimCounters,SizeOf(AnimCounters),0);
@@ -248,9 +232,9 @@ try
       lblTitle.Caption := VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'ProductName'];
       lblTitleShadow.Caption := lblTitle.Caption;
       with VersionInfoFixedFileInfoDecoded.FileVersionMembers do
-        lblVersion.Caption := Format('Version of the program: %d.%d.%d %s%s #%d%s',[Major,Minor,Release,
-                                     {$IFDEF FPC}'L'{$ELSE}'D'{$ENDIF},{$IFDEF 64bit}'64'{$ELSE}'32'{$ENDIF},
-                                     Build,{$IFDEF Debug}' debug'{$ELSE}''{$ENDIF}]);
+        lblVersion.Caption := Format('Version of the program: %d.%d.%d %s%s #%d%s',
+          [Major,Minor,Release,{$IFDEF FPC}'L'{$ELSE}'D'{$ENDIF},{$IFDEF 64bit}'64'{$ELSE}'32'{$ENDIF},
+           Build,{$IFDEF Debug}' debug'{$ELSE}''{$ENDIF}]);
       lblCopyright.Caption := Format('%s, all rights reserved',[VersionInfoValues[VersionInfoTranslations[0].LanguageStr,'LegalCopyright']]);
     end;
 finally

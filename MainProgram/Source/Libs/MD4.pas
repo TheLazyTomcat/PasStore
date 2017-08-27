@@ -9,13 +9,17 @@
 
   MD4 Hash Calculation
 
-  ©František Milt 2016-07-30
+  ©František Milt 2017-07-18
 
-  Version 1.3.5
+  Version 1.3.6
 
   Dependencies:
-    AuxTypes - github.com/ncs-sniper/Lib.AuxTypes
-    BitOps   - github.com/ncs-sniper/Lib.BitOps
+    AuxTypes    - github.com/ncs-sniper/Lib.AuxTypes
+    StrRect     - github.com/ncs-sniper/Lib.StrRect
+    BitOps      - github.com/ncs-sniper/Lib.BitOps
+  * SimpleCPUID - github.com/ncs-sniper/Lib.SimpleCPUID
+
+  SimpleCPUID might not be needed, see BitOps library for details.
 
 ===============================================================================}
 unit MD4;
@@ -32,8 +36,6 @@ unit MD4;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
-  // Activate symbol BARE_FPC if you want to compile this unit outside of Lazarus.
-  {.$DEFINE BARE_FPC}
 {$ENDIF}
 
 interface
@@ -94,14 +96,7 @@ Function MD4_Hash(const Buffer; Size: TMemSize): TMD4Hash;
 implementation
 
 uses
-  SysUtils, Math, BitOps
-  {$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
-  (*
-    If compiler throws error that LazUTF8 unit cannot be found, you have to
-    add LazUtils to required packages (Project > Project Inspector).
-  *)
-  , LazUTF8
-  {$IFEND};
+  SysUtils, Math, BitOps, StrRect;
 
 const
   ChunkSize       = 64;                           // 512 bits
@@ -368,11 +363,7 @@ Function FileMD4(const FileName: String): TMD4Hash;
 var
   FileStream: TFileStream;
 begin
-{$IF Defined(FPC) and not Defined(Unicode) and not Defined(BARE_FPC)}
-FileStream := TFileStream.Create(UTF8ToSys(FileName), fmOpenRead or fmShareDenyWrite);
-{$ELSE}
-FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
-{$IFEND}
+FileStream := TFileStream.Create(StrToRTL(FileName), fmOpenRead or fmShareDenyWrite);
 try
   Result := StreamMD4(FileStream);
 finally

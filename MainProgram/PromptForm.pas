@@ -7,6 +7,8 @@
 -------------------------------------------------------------------------------}
 unit PromptForm;
 
+{$INCLUDE '.\Source\PST_defs.inc'}
+
 interface
 
 uses
@@ -16,11 +18,13 @@ uses
 type
   TfPromptForm = class(TForm)
     lePrompt: TLabeledEdit;
+    cbShowPassword: TCheckBox;
     btnAccept: TButton;
     btnCancel: TButton;
     btnGenerator: TButton;
     procedure FormShow(Sender: TObject);    
     procedure lePromptKeyPress(Sender: TObject; var Key: Char);
+    procedure cbShowPasswordClick(Sender: TObject);
     procedure btnGeneratorClick(Sender: TObject);
     procedure btnAcceptClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -64,6 +68,8 @@ end;
 procedure TfPromptForm.FormShow(Sender: TObject);
 begin
 lePrompt.SetFocus;
+cbShowPassword.Checked := False;
+cbShowPassword.OnClick(nil);
 end;
 
 //------------------------------------------------------------------------------
@@ -75,6 +81,16 @@ If Key = #13 then
     btnAccept.OnClick(nil);
     Key := #0;
   end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TfPromptForm.cbShowPasswordClick(Sender: TObject);
+begin
+If cbShowPassword.Checked then
+  lePrompt.PasswordChar := #0
+else
+  lePrompt.PasswordChar := '*';
 end;
 
 //------------------------------------------------------------------------------

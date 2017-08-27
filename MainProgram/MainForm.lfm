@@ -3337,7 +3337,7 @@ object fMainForm: TfMainForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.2.0'
+  LCLVersion = '1.6.4.0'
   object lblEntries: TLabel
     Left = 8
     Height = 13
