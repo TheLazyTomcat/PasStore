@@ -18,7 +18,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="1"/>
-      <BuildNr Value="18"/>
+      <BuildNr Value="19"/>
       <Language Value="0405"/>
       <StringTable Comments="Application for passwords storage" CompanyName="František Milt" FileDescription="Password Storage Application" InternalName="PasStore" LegalCopyright="© 2016 - 2017 František Milt" LegalTrademarks="PasStore" OriginalFilename="PasStore.exe" ProductName="PasStore" ProductVersion="1.0.0"/>
     </VersionInfo>

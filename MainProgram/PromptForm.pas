@@ -31,7 +31,7 @@ type
   private
     PromptResult: Boolean;
   public
-    Function ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Generator: Boolean = False): Boolean;
+    Function ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Password: Boolean = False): Boolean;
   end;
 
 var
@@ -48,12 +48,14 @@ implementation
 uses
   GeneratorForm;
 
-Function TfPromptForm.ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Generator: Boolean = False): Boolean;
+Function TfPromptForm.ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Password: Boolean = False): Boolean;
 begin
 Self.Caption := FormCaption;
 lePrompt.EditLabel.Caption := Prompt;
 lePrompt.Text := DefaultText;
-btnGenerator.Visible := Generator;
+btnGenerator.Visible := Password;
+cbShowPassword.Checked := not Password;
+cbShowPassword.Visible := Password;
 PromptResult := False;
 ShowModal;
 Result := PromptResult;
@@ -68,7 +70,6 @@ end;
 procedure TfPromptForm.FormShow(Sender: TObject);
 begin
 lePrompt.SetFocus;
-cbShowPassword.Checked := False;
 cbShowPassword.OnClick(nil);
 end;
 
