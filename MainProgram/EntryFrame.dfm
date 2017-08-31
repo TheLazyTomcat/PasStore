@@ -93,7 +93,7 @@ object frmEntryFrame: TfrmEntryFrame
       ReadOnly = True
       RowSelect = True
       PopupMenu = pmHistoryMenu
-      TabOrder = 6
+      TabOrder = 8
       ViewStyle = vsReport
     end
     object lePassword: TLabeledEdit
@@ -104,7 +104,7 @@ object frmEntryFrame: TfrmEntryFrame
       EditLabel.Width = 50
       EditLabel.Height = 13
       EditLabel.Caption = 'Password:'
-      TabOrder = 3
+      TabOrder = 5
     end
     object leAddress: TLabeledEdit
       Left = 0
@@ -122,7 +122,7 @@ object frmEntryFrame: TfrmEntryFrame
       Width = 89
       Height = 25
       Caption = 'Add to history'
-      TabOrder = 5
+      TabOrder = 7
       OnClick = btnAddToHistoryClick
     end
     object btnGenerate: TButton
@@ -131,7 +131,7 @@ object frmEntryFrame: TfrmEntryFrame
       Width = 89
       Height = 25
       Caption = 'Generate...'
-      TabOrder = 4
+      TabOrder = 6
       OnClick = btnGenerateClick
     end
     object btnOpen: TButton
@@ -160,7 +160,7 @@ object frmEntryFrame: TfrmEntryFrame
       EditLabel.Width = 103
       EditLabel.Height = 13
       EditLabel.Caption = 'Login, account name:'
-      TabOrder = 7
+      TabOrder = 3
     end
     object leEmail: TLabeledEdit
       Left = 0
@@ -170,7 +170,7 @@ object frmEntryFrame: TfrmEntryFrame
       EditLabel.Width = 74
       EditLabel.Height = 13
       EditLabel.Caption = 'Account e-mail:'
-      TabOrder = 8
+      TabOrder = 4
     end
   end
   object pmHistoryMenu: TPopupMenu

@@ -33,7 +33,7 @@ object fPromptForm: TfPromptForm
     Width = 81
     Height = 25
     Caption = 'Accept'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnAcceptClick
   end
   object btnCancel: TButton
@@ -42,7 +42,7 @@ object fPromptForm: TfPromptForm
     Width = 81
     Height = 25
     Caption = 'Cancel'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnCancelClick
   end
   object btnGenerator: TButton
@@ -51,7 +51,7 @@ object fPromptForm: TfPromptForm
     Width = 81
     Height = 25
     Caption = 'Generate...'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = btnGeneratorClick
   end
   object cbShowPassword: TCheckBox
@@ -60,7 +60,7 @@ object fPromptForm: TfPromptForm
     Width = 97
     Height = 17
     Caption = 'Show password'
-    TabOrder = 4
+    TabOrder = 1
     OnClick = cbShowPasswordClick
   end
 end
