@@ -1,64 +1,71 @@
 object fPromptForm: TfPromptForm
   Left = 812
+  Height = 84
   Top = 115
+  Width = 432
   BorderStyle = bsDialog
   Caption = 'fPromptForm'
-  ClientHeight = 104
+  ClientHeight = 84
   ClientWidth = 432
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
-  Font.Style = []
-  Position = poMainFormCenter
   OnShow = FormShow
-  PixelsPerInch = 96
+  Position = poMainFormCenter
+  LCLVersion = '1.6.4.0'
   object lePrompt: TLabeledEdit
     Left = 8
+    Height = 21
     Top = 24
     Width = 417
-    Height = 21
-    EditLabel.Width = 42
+    EditLabel.AnchorSideLeft.Control = lePrompt
+    EditLabel.AnchorSideRight.Control = lePrompt
+    EditLabel.AnchorSideRight.Side = asrBottom
+    EditLabel.AnchorSideBottom.Control = lePrompt
+    EditLabel.Left = 8
     EditLabel.Height = 13
+    EditLabel.Top = 8
+    EditLabel.Width = 417
     EditLabel.Caption = 'lePrompt'
+    EditLabel.ParentColor = False
     TabOrder = 0
     OnKeyPress = lePromptKeyPress
   end
   object btnAccept: TButton
     Left = 256
-    Top = 72
-    Width = 81
     Height = 25
+    Top = 52
+    Width = 81
     Caption = 'Accept'
-    TabOrder = 2
     OnClick = btnAcceptClick
+    TabOrder = 3
   end
   object btnCancel: TButton
     Left = 344
-    Top = 72
-    Width = 81
     Height = 25
+    Top = 52
+    Width = 81
     Caption = 'Cancel'
-    TabOrder = 3
     OnClick = btnCancelClick
+    TabOrder = 4
   end
   object btnGenerator: TButton
-    Left = 8
-    Top = 72
-    Width = 81
+    Left = 168
     Height = 25
+    Top = 52
+    Width = 81
     Caption = 'Generate...'
-    TabOrder = 1
     OnClick = btnGeneratorClick
+    TabOrder = 2
   end
   object cbShowPassword: TCheckBox
     Left = 8
-    Top = 48
-    Width = 97
     Height = 17
+    Top = 56
+    Width = 93
     Caption = 'Show password'
-    TabOrder = 4
     OnClick = cbShowPasswordClick
+    TabOrder = 1
   end
 end

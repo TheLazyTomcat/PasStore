@@ -3,7 +3,7 @@ object fPromptForm: TfPromptForm
   Top = 115
   BorderStyle = bsDialog
   Caption = 'fPromptForm'
-  ClientHeight = 104
+  ClientHeight = 84
   ClientWidth = 432
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,38 +29,38 @@ object fPromptForm: TfPromptForm
   end
   object btnAccept: TButton
     Left = 256
-    Top = 72
+    Top = 52
     Width = 81
     Height = 25
     Caption = 'Accept'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnAcceptClick
   end
   object btnCancel: TButton
     Left = 344
-    Top = 72
+    Top = 52
     Width = 81
     Height = 25
     Caption = 'Cancel'
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnCancelClick
   end
   object btnGenerator: TButton
-    Left = 8
-    Top = 72
+    Left = 168
+    Top = 52
     Width = 81
     Height = 25
     Caption = 'Generate...'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = btnGeneratorClick
   end
   object cbShowPassword: TCheckBox
     Left = 8
-    Top = 48
+    Top = 56
     Width = 97
     Height = 17
     Caption = 'Show password'
-    TabOrder = 4
+    TabOrder = 1
     OnClick = cbShowPasswordClick
   end
 end

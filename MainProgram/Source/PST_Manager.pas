@@ -95,7 +95,7 @@ implementation
 
 uses
   AuxTypes, BinaryStreaming, SimpleCompress, MD5, SHA2, SHA3, AES,
-  SysUtils, StrUtils;
+  SysUtils, StrUtils, StrRect;
 
 {==============================================================================}
 {------------------------------------------------------------------------------}
@@ -247,18 +247,10 @@ var
   Pswd: UTF8String;
   Temp: TSHA2Hash;
 begin
-{$IFDEF Unicode}
-Pswd := UTF8Encode(fMasterPassword);
-{$ELSE}
-{$IFDEF FPC}
-Pswd := fMasterPassword;
-{$ELSE}
-Pswd := AnsiToUTF8(fMasterPassword);
-{$ENDIF}
-{$ENDIF}
-Move(AnsiStringSHA3(Keccak_b,Pswd,160).HashData[0],{%H-}InitVec,20);
-Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(AnsiStringMD5(Pswd))));
-Temp := BufferSHA2(sha512_224,AnsiStringSHA3(SHAKE256,Pswd,1024).HashData[0],128);
+Pswd := StrToUTF8(fMasterPassword);
+Move(BufferSHA3(Keccak_b,PAnsiChar(Pswd)^,Length(Pswd),160).HashData[0],{%H-}InitVec,20);
+Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(BufferMD5(PAnsiChar(Pswd)^,Length(Pswd)))));
+Temp := BufferSHA2(sha512_224,BufferSHA3(SHAKE256,PAnsiChar(Pswd)^,Length(Pswd),1024).HashData[0],128);
 Move(Temp.Hash512_224,{%H-}Key,28);
 end;
 
