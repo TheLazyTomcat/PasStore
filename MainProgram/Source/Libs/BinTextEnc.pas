@@ -37,6 +37,7 @@ unit BinTextEnc;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
+  {$DEFINE FPC_DisableWarns}
 {$ENDIF}
 
 interface
@@ -705,6 +706,12 @@ implementation
 uses
   Math;
 
+{$IFDEF FPC_DisableWarns}
+  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 5058 OFF} // Variable "$1" does not seem to be initialized
+{$ENDIF}
+
 const
   AnsiEncodingHexadecimal = AnsiChar('$');
   AnsiEncodingHeaderStart = AnsiChar('#');
@@ -761,9 +768,9 @@ procedure ResolveDataPointer(var Ptr: Pointer; Reversed: Boolean; Size: TMemSize
 begin
 If Reversed and Assigned(Ptr) then
 {$IFDEF x64}
-  Ptr := {%H-}Pointer({%H-}PtrUInt(Ptr) + Size - EndOffset);
+  Ptr := Pointer(PtrUInt(Ptr) + Size - EndOffset);
 {$ELSE}
-  Ptr := {%H-}Pointer(Int64({%H-}PtrUInt(Ptr)) + Size - EndOffset);
+  Ptr := Pointer(Int64(PtrUInt(Ptr)) + Size - EndOffset);
 {$ENDIF}
 end;
 
@@ -772,9 +779,9 @@ end;
 procedure AdvanceDataPointer(var Ptr: Pointer; Reversed: Boolean; Step: Byte = 1);
 begin
 If Reversed then
-  Ptr := {%H-}Pointer({%H-}PtrUInt(Ptr) - Step)
+  Ptr := Pointer(PtrUInt(Ptr) - Step)
 else
-  Ptr := {%H-}Pointer({%H-}PtrUInt(Ptr) + Step);
+  Ptr := Pointer(PtrUInt(Ptr) + Step);
 end;
 
 {------------------------------------------------------------------------------}
@@ -1565,7 +1572,7 @@ var
     ii: TMemSize;
   begin
     Result := 0;
-    ResolveDataPointer(Pointer({%H-}Ptr),Reversed,DataSize,4);
+    ResolveDataPointer(Pointer(Ptr),Reversed,DataSize,4);
     For ii := 1 to (DataSize div 4) do
       begin
         If PUInt32(Ptr)^ = 0 then Inc(Result);
@@ -2137,7 +2144,7 @@ var
   i,j:        TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base2(Size));
 StrOffset := Length(Header);
@@ -2162,7 +2169,7 @@ var
   i,j:        TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base2(Size));
 StrOffset := Length(Header);
@@ -2226,7 +2233,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base8(Size,False,Padding));
 Remainder := 0;
@@ -2287,7 +2294,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base8(Size,False,Padding));
 Remainder := 0;
@@ -2381,7 +2388,7 @@ var
   i,j:        TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base10(Size));
 StrOffset := Length(Header);
@@ -2406,7 +2413,7 @@ var
   i,j:        TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base10(Size));
 StrOffset := Length(Header);
@@ -2466,7 +2473,7 @@ var
   i:          TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base16(Size));
 StrOffset := Length(Header);
@@ -2486,7 +2493,7 @@ var
   i:          TMemSize;
   StrOffset:  TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base16(Size));
 StrOffset := Length(Header);
@@ -2571,7 +2578,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base32(Size,False,Padding));
 Remainder := 0;
@@ -2644,7 +2651,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base32(Size,False,Padding));
 Remainder := 0;
@@ -2778,7 +2785,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base64(Size,False,Padding));
 Remainder := 0;
@@ -2835,7 +2842,7 @@ var
   ResultPosition: TStrSize;
   j:              TStrSize;
 begin
-ResolveDataPointer({%H-}Data,Reversed,Size);
+ResolveDataPointer(Data,Reversed,Size);
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base64(Size,False,Padding));
 Remainder := 0;
@@ -2928,7 +2935,7 @@ var
 begin
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base85(Data,Size,Reversed,False,Compression,Trim));
-ResolveDataPointer({%H-}Data,Reversed,Size,4);
+ResolveDataPointer(Data,Reversed,Size,4);
 ResultPosition := 1 + Length(Header);
 For i := 1 to Ceil(Size / 4) do
   begin
@@ -2936,7 +2943,7 @@ For i := 1 to Ceil(Size / 4) do
       begin
         Buffer := 0;
         If Reversed then
-          Move({%H-}Pointer({%H-}PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,{%H-}Pointer({%H-}PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
+          Move(Pointer(PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,Pointer(PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
         else
           Move(Data^,Buffer,Size and 3);
       end
@@ -2975,7 +2982,7 @@ var
 begin
 Result := Header;
 SetLength(Result,Length(Header) + EncodedLength_Base85(Data,Size,Reversed,False,Compression,Trim));
-ResolveDataPointer({%H-}Data,Reversed,Size,4);
+ResolveDataPointer(Data,Reversed,Size,4);
 ResultPosition := 1 + Length(Header);
 For i := 1 to Ceil(Size / 4) do
   begin
@@ -2983,7 +2990,7 @@ For i := 1 to Ceil(Size / 4) do
       begin
         Buffer := 0;
         If Reversed then
-          Move({%H-}Pointer({%H-}PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,{%H-}Pointer({%H-}PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
+          Move(Pointer(PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,Pointer(PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
         else
           Move(Data^,Buffer,Size and 3);
       end
@@ -3220,7 +3227,7 @@ If Header then StrOffset := HeaderLength
   else StrOffset := 0;
 Result := AnsiDecodedLength_Base2(Str,Header);
 DecodeCheckSize(Size,Result,2);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Result > 0 then
   For i := 0 to Pred(Result) do
     begin
@@ -3244,7 +3251,7 @@ If Header then StrOffset := HeaderLength
   else StrOffset := 0;
 Result := WideDecodedLength_Base2(Str,Header);
 DecodeCheckSize(Size,Result,2);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Result > 0 then
   For i := 0 to Pred(Result) do
     begin
@@ -3436,7 +3443,7 @@ var
 begin
 Result := AnsiDecodedLength_Base8(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,8);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -3489,7 +3496,7 @@ var
 begin
 Result := WideDecodedLength_Base8(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,8);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -3708,7 +3715,7 @@ var
 begin
 Result := AnsiDecodedLength_Base10(Str,Header);
 DecodeCheckSize(Size,Result,10);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Header then StrOffset := HeaderLength
   else StrOffset := 0;
 If Result > 0 then
@@ -3730,7 +3737,7 @@ var
 begin
 Result := WideDecodedLength_Base10(Str,Header);
 DecodeCheckSize(Size,Result,10);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Header then StrOffset := HeaderLength
   else StrOffset := 0;
 If Result > 0 then
@@ -3923,7 +3930,7 @@ If Hex then
 else
   Result := AnsiDecodedLength_Base16(Str,Header);
 DecodeCheckSize(Size,Result,16);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Header then
   begin
     If Hex then StrOffset := HexadecimalHeaderLength
@@ -3951,7 +3958,7 @@ If Hex then
 else
   Result := WideDecodedLength_Base16(Str,Header);
 DecodeCheckSize(Size,Result,16);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 If Header then
   begin
     If Hex then StrOffset := HexadecimalHeaderLength
@@ -4229,7 +4236,7 @@ var
 begin
 Result := AnsiDecodedLength_Base32(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,32);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -4294,7 +4301,7 @@ var
 begin
 Result := WideDecodedLength_Base32(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,32);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -4576,7 +4583,7 @@ var
 begin
 Result := AnsiDecodedLength_Base64(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,64);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -4624,7 +4631,7 @@ var
 begin
 Result := WideDecodedLength_Base64(Str,Header,PaddingChar);
 DecodeCheckSize(Size,Result,64);
-ResolveDataPointer({%H-}Ptr,Reversed,Size);
+ResolveDataPointer(Ptr,Reversed,Size);
 Remainder := 0;
 RemainderBits := 0;
 If Header then StrPosition := 1 + HeaderLength
@@ -4841,7 +4848,7 @@ begin
 Result := AnsiDecodedLength_Base85(Str,Header,CompressionChar);
 DecodeCheckSize(Size,Result,85,3);
 If Size < Result then Result := Size;
-ResolveDataPointer({%H-}Ptr,Reversed,Size,4);
+ResolveDataPointer(Ptr,Reversed,Size,4);
 If Header then StrPosition := 1 + HeaderLength
   else StrPosition := 1;
 For i := 1 to Ceil(Result / 4) do
@@ -4876,7 +4883,7 @@ For i := 1 to Ceil(Result / 4) do
     If (i * 4) > Result  then
       begin
         If Reversed then
-          Move({%H-}Pointer({%H-}PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,{%H-}Pointer({%H-}PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
+          Move(Pointer(PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,Pointer(PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
         else
           Move(Buffer,Ptr^,Result and 3);
       end
@@ -4898,7 +4905,7 @@ begin
 Result := WideDecodedLength_Base85(Str,Header,CompressionChar);
 DecodeCheckSize(Size,Result,85,3);
 If Size < Result then Result := Size;
-ResolveDataPointer({%H-}Ptr,Reversed,Size,4);
+ResolveDataPointer(Ptr,Reversed,Size,4);
 If Header then StrPosition := 1 + HeaderLength
   else StrPosition := 1;
 For i := 1 to Ceil(Result / 4) do
@@ -4933,7 +4940,7 @@ For i := 1 to Ceil(Result / 4) do
     If (i * 4) > Result  then
       begin
         If Reversed then
-          Move({%H-}Pointer({%H-}PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,{%H-}Pointer({%H-}PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
+          Move(Pointer(PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,Pointer(PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
         else
           Move(Buffer,Ptr^,Result and 3);
       end

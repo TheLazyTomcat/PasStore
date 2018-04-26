@@ -54,6 +54,10 @@ uses
   AuxTypes, StrRect, CRC32, MD2, MD4, MD5, SHA0, SHA1, SHA2, SHA3, BinTextEnc,
   BinaryStreaming;
 
+{$IFDEF FPC_DisableWarns}
+  {$WARN 5024 OFF} // Parameter "$1" not used
+{$ENDIF}
+
 Function TfGeneratorForm.GeneratorPrompt(out Output: String): Boolean;
 begin
 cbMethod.OnChange(nil);

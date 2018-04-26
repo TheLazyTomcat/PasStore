@@ -36,6 +36,7 @@ unit MD5;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
+  {$DEFINE FPC_DisableWarns}
 {$ENDIF}
 
 interface
@@ -97,6 +98,12 @@ implementation
 
 uses
   SysUtils, Math, BitOps, StrRect;
+
+{$IFDEF FPC_DisableWarns}
+  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 5092 OFF} // Variable "$1" of a managed type does not seem to be initialized
+{$ENDIF}
 
 const
   ChunkSize       = 64;                           // 512 bits
@@ -280,9 +287,9 @@ LastChunkSize := Size - (UInt64(FullChunks) * ChunkSize);
 HelpChunks := Ceil((LastChunkSize + SizeOf(UInt64) + 1) / ChunkSize);
 HelpChunksBuff := AllocMem(HelpChunks * ChunkSize);
 try
-  Move({%H-}Pointer({%H-}PtrUInt(@Buffer) + (FullChunks * ChunkSize))^,HelpChunksBuff^,LastChunkSize);
-  {%H-}PUInt8({%H-}PtrUInt(HelpChunksBuff) + LastChunkSize)^ := $80;
-  {%H-}PUInt64({%H-}PtrUInt(HelpChunksBuff) + (UInt64(HelpChunks) * ChunkSize) - SizeOf(UInt64))^ := MessageLength;
+  Move(Pointer(PtrUInt(@Buffer) + (FullChunks * ChunkSize))^,HelpChunksBuff^,LastChunkSize);
+  PUInt8(PtrUInt(HelpChunksBuff) + LastChunkSize)^ := $80;
+  PUInt64(PtrUInt(HelpChunksBuff) + (UInt64(HelpChunks) * ChunkSize) - SizeOf(UInt64))^ := MessageLength;
   BufferMD5(Result,HelpChunksBuff^,HelpChunks * ChunkSize);
 finally
   FreeMem(HelpChunksBuff,HelpChunks * ChunkSize);
@@ -405,7 +412,7 @@ with PMD5Context_Internal(Context)^ do
             BufferMD5(MessageHash,TransferBuffer,ChunkSize);
             RemainingSize := Size - (ChunkSize - TransferSize);
             TransferSize := 0;
-            MD5_Update(Context,{%H-}Pointer({%H-}PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
+            MD5_Update(Context,Pointer(PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
           end
         else
           begin
@@ -422,7 +429,7 @@ with PMD5Context_Internal(Context)^ do
         If TMemSize(FullChunks * ChunkSize) < Size then
           begin
             TransferSize := Size - (UInt64(FullChunks) * ChunkSize);
-            Move({%H-}Pointer({%H-}PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
+            Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
           end;
       end;
   end;

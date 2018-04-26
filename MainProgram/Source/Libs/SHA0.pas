@@ -36,6 +36,7 @@ unit SHA0;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
+  {$DEFINE FPC_DisableWarns}
 {$ENDIF}
 
 interface
@@ -99,6 +100,12 @@ implementation
 
 uses
   SysUtils, Math, BitOps, StrRect;
+
+{$IFDEF FPC_DisableWarns}
+  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
+  {$WARN 5092 OFF} // Variable "$1" of a managed type does not seem to be initialized
+{$ENDIF}
 
 const
   BlockSize       = 64;                           // 512 bits
@@ -277,9 +284,9 @@ LastBlockSize := Size - (UInt64(FullBlocks) * BlockSize);
 HelpBlocks := Ceil((LastBlockSize + SizeOf(UInt64) + 1) / BlockSize);
 HelpBlocksBuff := AllocMem(HelpBlocks * BlockSize);
 try
-  Move({%H-}Pointer({%H-}PtrUInt(@Buffer) + (FullBlocks * BlockSize))^,HelpBlocksBuff^,LastBlockSize);
-  {%H-}PUInt8({%H-}PtrUInt(HelpBlocksBuff) + LastBlockSize)^ := $80;
-  {%H-}PUInt64({%H-}PtrUInt(HelpBlocksBuff) + (UInt64(HelpBlocks) * BlockSize) - SizeOf(UInt64))^ := EndianSwap(MessageLength);
+  Move(Pointer(PtrUInt(@Buffer) + (FullBlocks * BlockSize))^,HelpBlocksBuff^,LastBlockSize);
+  PUInt8(PtrUInt(HelpBlocksBuff) + LastBlockSize)^ := $80;
+  PUInt64(PtrUInt(HelpBlocksBuff) + (UInt64(HelpBlocks) * BlockSize) - SizeOf(UInt64))^ := EndianSwap(MessageLength);
   BufferSHA0(Result,HelpBlocksBuff^,HelpBlocks * BlockSize);
 finally
   FreeMem(HelpBlocksBuff,HelpBlocks * BlockSize);
@@ -402,7 +409,7 @@ with PSHA0Context_Internal(Context)^ do
             BufferSHA0(MessageHash,TransferBuffer,BlockSize);
             RemainingSize := Size - (BlockSize - TransferSize);
             TransferSize := 0;
-            SHA0_Update(Context,{%H-}Pointer({%H-}PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
+            SHA0_Update(Context,Pointer(PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
           end
         else
           begin
@@ -419,7 +426,7 @@ with PSHA0Context_Internal(Context)^ do
         If (FullBlocks * BlockSize) < Size then
           begin
             TransferSize := Size - (UInt64(FullBlocks) * BlockSize);
-            Move({%H-}Pointer({%H-}PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
+            Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
           end;
       end;
   end;

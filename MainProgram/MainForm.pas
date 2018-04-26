@@ -69,7 +69,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbEntriesClick(Sender: TObject);
-    procedure lbEntriesMouseDown(Sender: TObject; {%H-}Button: TMouseButton; {%H-}Shift: TShiftState; X, Y: Integer);
+    procedure lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormDestroy(Sender: TObject);
     procedure pmEntriesPopup(Sender: TObject);
     procedure pm_entry_AddClick(Sender: TObject);
@@ -112,6 +112,12 @@ var
 
 implementation
 
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
+
 uses
   WinFileInfo,
   PromptForm, GeneratorForm
@@ -119,10 +125,8 @@ uses
   , LazFileUtils
 {$ENDIF};
 
-{$IFDEF FPC}
-  {$R *.lfm}
-{$ELSE}
-  {$R *.dfm}
+{$IFDEF FPC_DisableWarns}
+  {$WARN 5024 OFF} // Parameter "$1" not used
 {$ENDIF}
 
 const

@@ -7,6 +7,8 @@
 -------------------------------------------------------------------------------}
 unit PST_Manager;
 
+{$INCLUDE '.\PST_defs.inc'}
+
 interface
 
 uses
@@ -96,6 +98,10 @@ implementation
 uses
   AuxTypes, BinaryStreaming, SimpleCompress, MD5, SHA2, SHA3, AES,
   SysUtils, StrUtils, StrRect;
+
+{$IFDEF FPC_DisableWarns}
+  {$WARN 5058 OFF} // Variable "$1" does not seem to be initialized
+{$ENDIF}
 
 {==============================================================================}
 {------------------------------------------------------------------------------}
@@ -248,10 +254,10 @@ var
   Temp: TSHA2Hash;
 begin
 Pswd := StrToUTF8(fMasterPassword);
-Move(BufferSHA3(Keccak_b,PAnsiChar(Pswd)^,Length(Pswd),160).HashData[0],{%H-}InitVec,20);
+Move(BufferSHA3(Keccak_b,PAnsiChar(Pswd)^,Length(Pswd),160).HashData[0],InitVec,20);
 Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(BufferMD5(PAnsiChar(Pswd)^,Length(Pswd)))));
 Temp := BufferSHA2(sha512_224,BufferSHA3(SHAKE256,PAnsiChar(Pswd)^,Length(Pswd),1024).HashData[0],128);
-Move(Temp.Hash512_224,{%H-}Key,28);
+Move(Temp.Hash512_224,Key,28);
 end;
 
 //------------------------------------------------------------------------------

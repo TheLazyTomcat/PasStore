@@ -72,6 +72,10 @@ implementation
 uses
   Windows, ShellAPI, ClipBrd, GeneratorForm, StrRect;
 
+{$IFDEF FPC_DisableWarns}
+  {$WARN 5024 OFF} // Parameter "$1" not used
+{$ENDIF}
+
 procedure TfrmEntryFrame.ListHistory;
 var
   i:  Integer;

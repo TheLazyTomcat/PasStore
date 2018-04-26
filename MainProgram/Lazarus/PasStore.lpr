@@ -14,11 +14,8 @@ uses
   Forms,
 
   MainForm,
-  EntryFrame,
   PromptForm,
-  GeneratorForm,
-
-  PST_Manager;
+  GeneratorForm;
 
 {$R *.res}
 

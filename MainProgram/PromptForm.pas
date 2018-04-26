@@ -48,6 +48,10 @@ implementation
 uses
   GeneratorForm;
 
+{$IFDEF FPC_DisableWarns}
+  {$WARN 5024 OFF} // Parameter "$1" not used
+{$ENDIF}
+
 Function TfPromptForm.ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Password: Boolean = False): Boolean;
 begin
 Self.Caption := FormCaption;
