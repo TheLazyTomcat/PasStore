@@ -37,6 +37,7 @@ unit MD4;
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
   {$DEFINE FPC_DisableWarns}
+  {$MACRO ON}
 {$ENDIF}
 
 interface
@@ -100,11 +101,16 @@ uses
   SysUtils, Math, BitOps, StrRect;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
+  {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W4056:={$WARN 4056 OFF}} // Conversion between ordinals and pointers is not portable
+  {$PUSH}{$WARN 2005 OFF} // Comment level $1 found
   {$IF Defined(FPC) and (FPC_FULLVERSION >= 30000)}
-    {$WARN 5092 OFF} // Variable "$1" of a managed type does not seem to be initialized
+    {$DEFINE W5092:={$WARN 5092 OFF}} // Variable "$1" of a managed type does not seem to be initialized
+  {$ELSE}
+    {$DEFINE W5092:=}
   {$IFEND}
+  {$POP}
 {$ENDIF}
 
 const
@@ -199,6 +205,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5092{$ENDIF}
 Function StrToMD4(Str: String): TMD4Hash;
 var
   HashArray:  array[0..15] of UInt8 absolute Result;
@@ -212,6 +219,7 @@ else
 For i := 0 to 15 do
   HashArray[i] := StrToInt('$' + Copy(Str,(i * 2) + 1,2));
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -286,9 +294,11 @@ LastChunkSize := Size - (UInt64(FullChunks) * ChunkSize);
 HelpChunks := Ceil((LastChunkSize + SizeOf(UInt64) + 1) / ChunkSize);
 HelpChunksBuff := AllocMem(HelpChunks * ChunkSize);
 try
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
   Move(Pointer(PtrUInt(@Buffer) + (FullChunks * ChunkSize))^,HelpChunksBuff^,LastChunkSize);
   PUInt8(PtrUInt(HelpChunksBuff) + LastChunkSize)^ := $80;
   PUInt64(PtrUInt(HelpChunksBuff) + (UInt64(HelpChunks) * ChunkSize) - SizeOf(UInt64))^ := MessageLength;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
   BufferMD4(Result,HelpChunksBuff^,HelpChunks * ChunkSize);
 finally
   FreeMem(HelpChunksBuff,HelpChunks * ChunkSize);
@@ -411,7 +421,9 @@ with PMD4Context_Internal(Context)^ do
             BufferMD4(MessageHash,TransferBuffer,ChunkSize);
             RemainingSize := Size - (ChunkSize - TransferSize);
             TransferSize := 0;
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
             MD4_Update(Context,Pointer(PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end
         else
           begin
@@ -428,7 +440,9 @@ with PMD4Context_Internal(Context)^ do
         If TMemSize(FullChunks * ChunkSize) < Size then
           begin
             TransferSize := Size - (UInt64(FullChunks) * ChunkSize);
-            Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize)
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
+            Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end;
       end;
   end;

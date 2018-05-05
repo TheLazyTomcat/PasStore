@@ -25,6 +25,7 @@ unit MD2;
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
   {$DEFINE FPC_DisableWarns}
+  {$MACRO ON}
 {$ENDIF}
 
 interface
@@ -93,11 +94,16 @@ uses
   SysUtils, StrRect;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable  
+  {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W4056:={$WARN 4056 OFF}} // Conversion between ordinals and pointers is not portable
+  {$PUSH}{$WARN 2005 OFF} // Comment level $1 found
   {$IF Defined(FPC) and (FPC_FULLVERSION >= 30000)}
-    {$WARN 5092 OFF} // Variable "$1" of a managed type does not seem to be initialized
+    {$DEFINE W5092:={$WARN 5092 OFF}} // Variable "$1" of a managed type does not seem to be initialized
+  {$ELSE}
+    {$DEFINE W5092:=}
   {$IFEND}
+  {$POP}
 {$ENDIF}
 
 const
@@ -189,6 +195,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5092{$ENDIF}
 Function StrToMD2(Str: String): TMD2Hash;
 var
   i:  Integer;
@@ -201,6 +208,7 @@ else
 For i := 0 to 15 do
   Result[i] := StrToInt('$' + Copy(Str,(i * 2) + 1,2));
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -282,7 +290,9 @@ HelpBlocks := Succ(Size div BlockSize) - FullBlocks;
 HelpBlocksBuff := AllocMem(HelpBlocks * BlockSize);
 try
   FillChar(HelpBlocksBuff^,HelpBlocks * BlockSize,UInt8(((UInt64(FullBlocks) + HelpBlocks) * BlockSize) - Size));
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
   Move(Pointer(PtrUInt(@Buffer) + (FullBlocks * BlockSize))^,HelpBlocksBuff^,Size - (FullBlocks * Int64(BlockSize)));
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
   BufferMD2(MD2State,HelpBlocksBuff^,HelpBlocks * BlockSize);
   BlockHash(MD2State,MD2State.Checksum);
   Move(MD2State.HashBuffer,Result,SizeOf(Result));
@@ -404,7 +414,9 @@ with PMD2Context_Internal(Context)^ do
             BufferMD2(MD2State,TransferBuffer,BlockSize);
             RemainingSize := Size - (BlockSize - TransferSize);
             TransferSize := 0;
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
             MD2_Update(Context,Pointer(PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end
         else
           begin
@@ -419,7 +431,9 @@ with PMD2Context_Internal(Context)^ do
         If TMemSize(FullBlocks * BlockSize) < Size then
           begin
             TransferSize := Size - (FullBlocks * Int64(BlockSize));
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
             Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize)
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end;
       end;
   end;

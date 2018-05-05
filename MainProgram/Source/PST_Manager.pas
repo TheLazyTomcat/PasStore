@@ -100,7 +100,8 @@ uses
   SysUtils, StrUtils, StrRect;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 5058 OFF} // Variable "$1" does not seem to be initialized
+  {$DEFINE FPCDWM}
+  {$DEFINE W5058:={$WARN 5058 OFF}} // Variable "$1" does not seem to be initialized
 {$ENDIF}
 
 {==============================================================================}
@@ -248,6 +249,7 @@ end;
  
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 procedure TPSTManager.GetKeyAndInitVector(out Key, InitVec);
 var
   Pswd: UTF8String;
@@ -259,6 +261,7 @@ Pswd := Pswd + '&' + ReverseString(AnsiUpperCase(MD5ToStr(BufferMD5(PAnsiChar(Ps
 Temp := BufferSHA2(sha512_224,BufferSHA3(SHAKE256,PAnsiChar(Pswd)^,Length(Pswd),1024).HashData[0],128);
 Move(Temp.Hash512_224,Key,28);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 

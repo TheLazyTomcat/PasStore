@@ -73,7 +73,8 @@ uses
   Windows, ShellAPI, ClipBrd, GeneratorForm, StrRect;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 5024 OFF} // Parameter "$1" not used
+  {$DEFINE FPCDWM}
+  {$DEFINE W5024:={$WARN 5024 OFF}} // Parameter "$1" not used
 {$ENDIF}
 
 procedure TfrmEntryFrame.ListHistory;
@@ -96,6 +97,7 @@ end;
 
 //==============================================================================
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.SetEntry(Sender: TObject; Entry: PPSTEntry);
 begin
 pnlMainPanel.Visible := Assigned(Entry);
@@ -111,9 +113,11 @@ If Assigned(Entry) then
     ListHistory;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.GetEntry(Sender: TObject; Entry: PPSTEntry);
 begin
 If Assigned(Entry) then
@@ -126,25 +130,31 @@ If Assigned(Entry) then
     Entry^ := LocalEntry;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //==============================================================================
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.lblNameDblClick(Sender: TObject);
 begin
 If Assigned(fOnActionRequired) then
   fOnActionRequired(Self,EF_ACTREQ_RENAME);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.btnOpenClick(Sender: TObject);
 begin
 If leAddress.Text <> '' then
   ShellExecute(0,'open',PChar(StrToWin(leAddress.Text)),nil,nil,SW_SHOWNORMAL);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.btnGenerateClick(Sender: TObject);
 var
   NewPassword:  String;
@@ -175,9 +185,11 @@ If fGeneratorForm.GeneratorPrompt(NewPassword) then
     lePassword.Text := NewPassword;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.btnAddToHistoryClick(Sender: TObject);
 begin
 If lePassword.Text <> '' then
@@ -189,17 +201,21 @@ If lePassword.Text <> '' then
   end
 else MessageDlg('Cannot add empty password to history.',mtError,[mbOk],0);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
  
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.pmHistoryMenuPopup(Sender: TObject);
 begin
 pm_hm_Remove.Enabled := lvHistory.ItemIndex >= 0;
 pm_hm_Copy.Enabled := lvHistory.ItemIndex >= 0;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
  
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.pm_hm_RemoveClick(Sender: TObject);
 var
   i:  Integer;
@@ -213,13 +229,16 @@ If lvHistory.ItemIndex >= 0 then
       ListHistory;  
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
  
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfrmEntryFrame.pm_hm_CopyClick(Sender: TObject);
 begin
 If lvHistory.ItemIndex >= 0 then
   Clipboard.AsText := LocalEntry.History[Pred(lvHistory.Items.Count) - lvHistory.ItemIndex].Password;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 end.

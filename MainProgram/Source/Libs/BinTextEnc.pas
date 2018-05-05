@@ -38,6 +38,7 @@ unit BinTextEnc;
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
   {$DEFINE FPC_DisableWarns}
+  {$MACRO ON}
 {$ENDIF}
 
 interface
@@ -707,9 +708,10 @@ uses
   Math;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 5058 OFF} // Variable "$1" does not seem to be initialized
+  {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W4056:={$WARN 4056 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W5058:={$WARN 5058 OFF}} // Variable "$1" does not seem to be initialized
 {$ENDIF}
 
 const
@@ -767,21 +769,25 @@ end;
 procedure ResolveDataPointer(var Ptr: Pointer; Reversed: Boolean; Size: TMemSize; EndOffset: UInt32 = 1);
 begin
 If Reversed and Assigned(Ptr) then
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
 {$IFDEF x64}
   Ptr := Pointer(PtrUInt(Ptr) + Size - EndOffset);
 {$ELSE}
   Ptr := Pointer(Int64(PtrUInt(Ptr)) + Size - EndOffset);
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 {------------------------------------------------------------------------------}
 
 procedure AdvanceDataPointer(var Ptr: Pointer; Reversed: Boolean; Step: Byte = 1);
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
 If Reversed then
   Ptr := Pointer(PtrUInt(Ptr) - Step)
 else
   Ptr := Pointer(PtrUInt(Ptr) + Step);
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 {------------------------------------------------------------------------------}
@@ -1563,6 +1569,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function EncodedLength_Base85(Data: Pointer; DataSize: TMemSize; Reversed: Boolean; Header: Boolean = False; Compression: Boolean = True; Trim: Boolean = True): TStrSize;
 var
   Temp: TMemSize;
@@ -1595,6 +1602,7 @@ If Temp <= TMemSize(High(TStrSize)) then
   end
 else raise ETooMuchData.CreateFmt('EncodedLength_Base85: Too much data (%d).',[DataSize]);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -2138,6 +2146,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base2(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:     Byte;
@@ -2160,9 +2169,11 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed)
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base2(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:     Byte;
@@ -2185,6 +2196,7 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -2224,6 +2236,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base8(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of AnsiChar; PaddingChar: AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:         Byte;
@@ -2282,9 +2295,11 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base8(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of UnicodeChar; PaddingChar: UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:         Byte;
@@ -2343,6 +2358,7 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -2382,6 +2398,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base10(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:     Byte;
@@ -2404,9 +2421,11 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base10(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:     Byte;
@@ -2429,6 +2448,7 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -2468,6 +2488,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base16(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   i:          TMemSize;
@@ -2485,9 +2506,11 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base16(Data: Pointer; Size: TMemSize; Reversed: Boolean; const EncodingTable: Array of UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   i:          TMemSize;
@@ -2505,6 +2528,7 @@ If Size > 0 then
       AdvanceDataPointer(Data,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -2569,6 +2593,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base32(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of AnsiChar; PaddingChar: AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:         Byte;
@@ -2639,9 +2664,11 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base32(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of UnicodeChar; PaddingChar: UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:         Byte;
@@ -2712,6 +2739,7 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -2776,6 +2804,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base64(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of AnsiChar; PaddingChar: AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:         Byte;
@@ -2830,9 +2859,11 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base64(Data: Pointer; Size: TMemSize; Reversed: Boolean; Padding: Boolean; const EncodingTable: Array of UnicodeChar; PaddingChar: UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:         Byte;
@@ -2887,6 +2918,7 @@ Inc(ResultPosition);
 If Padding then
   For j := ResultPosition to Length(Result) do Result[j] := PaddingChar;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -2926,6 +2958,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiEncode_Base85(Data: Pointer; Size: TMemSize; Reversed: Boolean; Compression: Boolean; Trim: Boolean; const EncodingTable: Array of AnsiChar; CompressionChar: AnsiChar; Header: AnsiString = ''): AnsiString;
 var
   Buffer:         UInt32;
@@ -2943,7 +2976,9 @@ For i := 1 to Ceil(Size / 4) do
       begin
         Buffer := 0;
         If Reversed then
+        {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
           Move(Pointer(PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,Pointer(PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
+        {$IFDEF FPCDWM}{$POP}{$ENDIF}
         else
           Move(Data^,Buffer,Size and 3);
       end
@@ -2970,9 +3005,11 @@ For i := 1 to Ceil(Size / 4) do
     AdvanceDataPointer(Data,Reversed,4);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideEncode_Base85(Data: Pointer; Size: TMemSize; Reversed: Boolean; Compression: Boolean; Trim: Boolean; const EncodingTable: Array of UnicodeChar; CompressionChar: UnicodeChar; Header: UnicodeString = ''): UnicodeString;
 var
   Buffer:         UInt32;
@@ -2990,7 +3027,9 @@ For i := 1 to Ceil(Size / 4) do
       begin
         Buffer := 0;
         If Reversed then
+        {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
           Move(Pointer(PtrUInt(Data) - PtrUInt(Size and 3) + 4)^,Pointer(PtrUInt(@Buffer) - PtrUInt(Size and 3) + 4)^,Size and 3)
+        {$IFDEF FPCDWM}{$POP}{$ENDIF}
         else
           Move(Data^,Buffer,Size and 3);
       end
@@ -3017,6 +3056,7 @@ For i := 1 to Ceil(Size / 4) do
     AdvanceDataPointer(Data,Reversed,4);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -3217,6 +3257,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base2(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False): TMemSize;
 var
   Buffer:     Byte;
@@ -3238,9 +3279,11 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base2(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False): TMemSize;
 var
   Buffer:     Byte;
@@ -3262,6 +3305,7 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -3433,6 +3477,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base8(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: AnsiChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -3483,9 +3528,11 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base8(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: UnicodeChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -3536,6 +3583,7 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -3708,6 +3756,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base10(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False): TMemSize;
 var
   i:          TMemSize;
@@ -3727,9 +3776,11 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed)
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base10(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False): TMemSize;
 var
   i:          TMemSize;
@@ -3749,6 +3800,7 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed)
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -3920,6 +3972,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base16(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False; Hex: Boolean = False): TMemSize;
 var
   i:          TMemSize;
@@ -3945,9 +3998,11 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base16(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; Header: Boolean = False; Hex: Boolean = False): TMemSize;
 var
   i:          TMemSize;
@@ -3973,6 +4028,7 @@ If Result > 0 then
       AdvanceDataPointer(Ptr,Reversed);
     end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -4226,6 +4282,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base32(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: AnsiChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -4287,10 +4344,11 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
-
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base32(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: UnicodeChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -4352,6 +4410,7 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
@@ -4573,6 +4632,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base64(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: AnsiChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -4618,9 +4678,11 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base64(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; PaddingChar: UnicodeChar; Header: Boolean = False): TMemSize;
 var
   Buffer:         Byte;
@@ -4666,6 +4728,7 @@ For i := 1 to Result do
     AdvanceDataPointer(Ptr,Reversed);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {==============================================================================}
 
@@ -4837,6 +4900,7 @@ end;
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function AnsiDecode_Base85(const Str: AnsiString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; CompressionChar: AnsiChar; Header: Boolean = False): TMemSize;
 var
   i:            TMemSize;
@@ -4883,7 +4947,9 @@ For i := 1 to Ceil(Result / 4) do
     If (i * 4) > Result  then
       begin
         If Reversed then
+        {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
           Move(Pointer(PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,Pointer(PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
+        {$IFDEF FPCDWM}{$POP}{$ENDIF}
         else
           Move(Buffer,Ptr^,Result and 3);
       end
@@ -4891,9 +4957,11 @@ For i := 1 to Ceil(Result / 4) do
     AdvanceDataPointer(Ptr,Reversed,4);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W5058{$ENDIF}
 Function WideDecode_Base85(const Str: UnicodeString; Ptr: Pointer; Size: TMemSize; Reversed: Boolean; const DecodingTable: TDecodingTable; CompressionChar: UnicodeChar; Header: Boolean = False): TMemSize;
 var
   i:            TMemSize;
@@ -4940,7 +5008,9 @@ For i := 1 to Ceil(Result / 4) do
     If (i * 4) > Result  then
       begin
         If Reversed then
+        {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
           Move(Pointer(PtrUInt(@Buffer) - PtrUInt(Result and 3) + 4)^,Pointer(PtrUInt(Ptr) - PtrUInt(Result and 3) + 4)^,Result and 3)
+        {$IFDEF FPCDWM}{$POP}{$ENDIF}
         else
           Move(Buffer,Ptr^,Result and 3);
       end
@@ -4948,6 +5018,7 @@ For i := 1 to Ceil(Result / 4) do
     AdvanceDataPointer(Ptr,Reversed,4);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 {------------------------------------------------------------------------------}
 

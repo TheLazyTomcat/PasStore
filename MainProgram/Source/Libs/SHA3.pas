@@ -9,9 +9,9 @@
 
   SHA3/Keccak hash calculation
 
-  ©František Milt 2017-07-18
+  ©František Milt 2018-05-03
 
-  Version 1.1.4
+  Version 1.1.5
 
   Following hash variants are supported in current implementation:
     Keccak224
@@ -37,8 +37,6 @@
 ===============================================================================}
 unit SHA3;
 
-interface
-
 {$DEFINE LargeBuffer}
 
 {$IFDEF ENDIAN_BIG}
@@ -48,7 +46,10 @@ interface
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
   {$DEFINE FPC_DisableWarns}
+  {$MACRO ON}
 {$ENDIF}
+
+interface
 
 uses
   Classes, AuxTypes;
@@ -60,6 +61,8 @@ type
   TSHA3HashSize = TKeccakHashSize;
 
   TKeccakSponge = array[0..4,0..4] of UInt64;  // First index is Y, second X
+  
+  TKeccakSpongeOverlay = array[0..24] of UInt64;
 
   TKeccakState = record
     HashSize:   TKeccakHashSize;
@@ -119,11 +122,16 @@ uses
   SysUtils, Math, BitOps, StrRect;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
+  {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W4056:={$WARN 4056 OFF}} // Conversion between ordinals and pointers is not portable
+  {$PUSH}{$WARN 2005 OFF} // Comment level $1 found
   {$IF Defined(FPC) and (FPC_FULLVERSION >= 30000)}
-    {$WARN 5092 OFF} // Variable "$1" of a managed type does not seem to be initialized
+    {$DEFINE W5092:={$WARN 5092 OFF}} // Variable "$1" of a managed type does not seem to be initialized
+  {$ELSE}
+    {$DEFINE W5092:=}
   {$IFEND}
+  {$POP}
 {$ENDIF}
 
 const
@@ -156,36 +164,101 @@ type
 
 procedure Permute(var State: TKeccakState);
 var
-  i,x,y:  Integer;
-  B:      TKeccakSponge;
-  C,D:    array[0..4] of UInt64;
-
-  Function WrapIndex(Idx: Integer): Integer;
-  begin
-    while Idx > 4 do Dec(Idx,5);
-    while Idx < 0 do Inc(Idx,5);
-    Result := Idx;
-  end;
-
+  i:    Integer;
+  B:    TKeccakSponge;
+  C,D:  array[0..4] of UInt64;
 begin
 For i := 0 to 23 do // 24 rounds (12 + 2L; where L = log2(64) = 6; 64 is length of sponge word in bits)
   begin
-    For x := 0 to 4 do
-      C[x] := State.Sponge[0,x] xor State.Sponge[1,x] xor State.Sponge[2,x] xor State.Sponge[3,x] xor State.Sponge[4,x];
+    C[0] := State.Sponge[0,0] xor State.Sponge[1,0] xor State.Sponge[2,0] xor State.Sponge[3,0] xor State.Sponge[4,0];
+    C[1] := State.Sponge[0,1] xor State.Sponge[1,1] xor State.Sponge[2,1] xor State.Sponge[3,1] xor State.Sponge[4,1];
+    C[2] := State.Sponge[0,2] xor State.Sponge[1,2] xor State.Sponge[2,2] xor State.Sponge[3,2] xor State.Sponge[4,2];
+    C[3] := State.Sponge[0,3] xor State.Sponge[1,3] xor State.Sponge[2,3] xor State.Sponge[3,3] xor State.Sponge[4,3];
+    C[4] := State.Sponge[0,4] xor State.Sponge[1,4] xor State.Sponge[2,4] xor State.Sponge[3,4] xor State.Sponge[4,4];
 
-    For x := 0 to 4 do
-      D[x] := C[WrapIndex(x - 1)] xor ROL(C[WrapIndex(x + 1)],1);
-    For x := 0 to 4 do
-      For y := 0 to 4 do
-        State.Sponge[y,x] := State.Sponge[y,x] xor D[x];
+    D[0] := C[4] xor ROL(C[1],1);
+    D[1] := C[0] xor ROL(C[2],1);
+    D[2] := C[1] xor ROL(C[3],1);
+    D[3] := C[2] xor ROL(C[4],1);
+    D[4] := C[3] xor ROL(C[0],1);
 
-    For x := 0 to 4 do
-      For y := 0 to 4 do
-        B[WrapIndex(2 *x + 3 * y),y] := ROL(State.Sponge[y,x],RotateCoefs[x,y]);
+    State.Sponge[0,0] := State.Sponge[0,0] xor D[0];
+    State.Sponge[0,1] := State.Sponge[0,1] xor D[1];
+    State.Sponge[0,2] := State.Sponge[0,2] xor D[2];
+    State.Sponge[0,3] := State.Sponge[0,3] xor D[3];
+    State.Sponge[0,4] := State.Sponge[0,4] xor D[4];
+    State.Sponge[1,0] := State.Sponge[1,0] xor D[0];
+    State.Sponge[1,1] := State.Sponge[1,1] xor D[1];
+    State.Sponge[1,2] := State.Sponge[1,2] xor D[2];
+    State.Sponge[1,3] := State.Sponge[1,3] xor D[3];
+    State.Sponge[1,4] := State.Sponge[1,4] xor D[4];
+    State.Sponge[2,0] := State.Sponge[2,0] xor D[0];
+    State.Sponge[2,1] := State.Sponge[2,1] xor D[1];
+    State.Sponge[2,2] := State.Sponge[2,2] xor D[2];
+    State.Sponge[2,3] := State.Sponge[2,3] xor D[3];
+    State.Sponge[2,4] := State.Sponge[2,4] xor D[4];
+    State.Sponge[3,0] := State.Sponge[3,0] xor D[0];
+    State.Sponge[3,1] := State.Sponge[3,1] xor D[1];
+    State.Sponge[3,2] := State.Sponge[3,2] xor D[2];
+    State.Sponge[3,3] := State.Sponge[3,3] xor D[3];
+    State.Sponge[3,4] := State.Sponge[3,4] xor D[4];
+    State.Sponge[4,0] := State.Sponge[4,0] xor D[0];
+    State.Sponge[4,1] := State.Sponge[4,1] xor D[1];
+    State.Sponge[4,2] := State.Sponge[4,2] xor D[2];
+    State.Sponge[4,3] := State.Sponge[4,3] xor D[3];
+    State.Sponge[4,4] := State.Sponge[4,4] xor D[4];
 
-    For x := 0 to 4 do
-      For y := 0 to 4 do
-        State.Sponge[y,x] := B[y,x] xor ((not B[y,WrapIndex(x + 1)]) and B[y,WrapIndex(x + 2)]);
+    B[0,0] := ROL(State.Sponge[0,0],RotateCoefs[0,0]);
+    B[2,0] := ROL(State.Sponge[0,1],RotateCoefs[1,0]);
+    B[4,0] := ROL(State.Sponge[0,2],RotateCoefs[2,0]);
+    B[1,0] := ROL(State.Sponge[0,3],RotateCoefs[3,0]);
+    B[3,0] := ROL(State.Sponge[0,4],RotateCoefs[4,0]);
+    B[3,1] := ROL(State.Sponge[1,0],RotateCoefs[0,1]);
+    B[0,1] := ROL(State.Sponge[1,1],RotateCoefs[1,1]);
+    B[2,1] := ROL(State.Sponge[1,2],RotateCoefs[2,1]);
+    B[4,1] := ROL(State.Sponge[1,3],RotateCoefs[3,1]);
+    B[1,1] := ROL(State.Sponge[1,4],RotateCoefs[4,1]);
+    B[1,2] := ROL(State.Sponge[2,0],RotateCoefs[0,2]);
+    B[3,2] := ROL(State.Sponge[2,1],RotateCoefs[1,2]);
+    B[0,2] := ROL(State.Sponge[2,2],RotateCoefs[2,2]);
+    B[2,2] := ROL(State.Sponge[2,3],RotateCoefs[3,2]);
+    B[4,2] := ROL(State.Sponge[2,4],RotateCoefs[4,2]);
+    B[4,3] := ROL(State.Sponge[3,0],RotateCoefs[0,3]);
+    B[1,3] := ROL(State.Sponge[3,1],RotateCoefs[1,3]);
+    B[3,3] := ROL(State.Sponge[3,2],RotateCoefs[2,3]);
+    B[0,3] := ROL(State.Sponge[3,3],RotateCoefs[3,3]);
+    B[2,3] := ROL(State.Sponge[3,4],RotateCoefs[4,3]);
+    B[2,4] := ROL(State.Sponge[4,0],RotateCoefs[0,4]);
+    B[4,4] := ROL(State.Sponge[4,1],RotateCoefs[1,4]);
+    B[1,4] := ROL(State.Sponge[4,2],RotateCoefs[2,4]);
+    B[3,4] := ROL(State.Sponge[4,3],RotateCoefs[3,4]);
+    B[0,4] := ROL(State.Sponge[4,4],RotateCoefs[4,4]);
+
+    State.Sponge[0,0] := B[0,0] xor ((not B[0,1]) and B[0,2]);
+    State.Sponge[0,1] := B[0,1] xor ((not B[0,2]) and B[0,3]);
+    State.Sponge[0,2] := B[0,2] xor ((not B[0,3]) and B[0,4]);
+    State.Sponge[0,3] := B[0,3] xor ((not B[0,4]) and B[0,0]);
+    State.Sponge[0,4] := B[0,4] xor ((not B[0,0]) and B[0,1]);
+    State.Sponge[1,0] := B[1,0] xor ((not B[1,1]) and B[1,2]);
+    State.Sponge[1,1] := B[1,1] xor ((not B[1,2]) and B[1,3]);
+    State.Sponge[1,2] := B[1,2] xor ((not B[1,3]) and B[1,4]);
+    State.Sponge[1,3] := B[1,3] xor ((not B[1,4]) and B[1,0]);
+    State.Sponge[1,4] := B[1,4] xor ((not B[1,0]) and B[1,1]);
+    State.Sponge[2,0] := B[2,0] xor ((not B[2,1]) and B[2,2]);
+    State.Sponge[2,1] := B[2,1] xor ((not B[2,2]) and B[2,3]);
+    State.Sponge[2,2] := B[2,2] xor ((not B[2,3]) and B[2,4]);
+    State.Sponge[2,3] := B[2,3] xor ((not B[2,4]) and B[2,0]);
+    State.Sponge[2,4] := B[2,4] xor ((not B[2,0]) and B[2,1]);
+    State.Sponge[3,0] := B[3,0] xor ((not B[3,1]) and B[3,2]);
+    State.Sponge[3,1] := B[3,1] xor ((not B[3,2]) and B[3,3]);
+    State.Sponge[3,2] := B[3,2] xor ((not B[3,3]) and B[3,4]);
+    State.Sponge[3,3] := B[3,3] xor ((not B[3,4]) and B[3,0]);
+    State.Sponge[3,4] := B[3,4] xor ((not B[3,0]) and B[3,1]);
+    State.Sponge[4,0] := B[4,0] xor ((not B[4,1]) and B[4,2]);
+    State.Sponge[4,1] := B[4,1] xor ((not B[4,2]) and B[4,3]);
+    State.Sponge[4,2] := B[4,2] xor ((not B[4,3]) and B[4,4]);
+    State.Sponge[4,3] := B[4,3] xor ((not B[4,4]) and B[4,0]);
+    State.Sponge[4,4] := B[4,4] xor ((not B[4,0]) and B[4,1]);
 
     State.Sponge[0,0] := State.Sponge[0,0] xor RoundConsts[i];
   end;
@@ -196,14 +269,10 @@ end;
 procedure BlockHash(var State: TKeccakState; const Block);
 var
   i:    Integer;
-  Buff: PUInt64;
+  Buff: TKeccakSpongeOverlay absolute Block;
 begin
-Buff := @Block;
 For i := 0 to Pred(State.BlockSize shr 3) do
-  begin
-    State.Sponge[i div 5,i mod 5] := State.Sponge[i div 5,i mod 5] xor Buff^;
-    Inc(Buff);
-  end;
+  TKeccakSpongeOverlay(State.Sponge)[i] := TKeccakSpongeOverlay(State.Sponge)[i] xor Buff[i];
 Permute(State);
 end;
 
@@ -217,7 +286,9 @@ BytesToSqueeze := State.HashBits shr 3;
 If BytesToSqueeze > State.BlockSize then
   while BytesToSqueeze > 0 do
     begin
+    {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
       Move(State.Sponge,Pointer(PtrUInt(@Buffer) + UInt64(State.HashBits shr 3) - BytesToSqueeze)^,Min(BytesToSqueeze,State.BlockSize));
+    {$IFDEF FPCDWM}{$POP}{$ENDIF}
       Permute(State);
       Dec(BytesToSqueeze,Min(BytesToSqueeze,State.BlockSize));
     end
@@ -291,6 +362,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5092{$ENDIF}
 Function StrToSHA3(HashSize: TSHA3HashSize; Str: String): TSHA3Hash;
 var
   HashCharacters: Integer;
@@ -318,6 +390,7 @@ SetLength(Result.HashData,Length(Str) shr 1);
 For i := Low(Result.HashData) to High(Result.HashData) do
   Result.HashData[i] := UInt8(StrToInt('$' + Copy(Str,(i * 2) + 1,2)));
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -399,6 +472,7 @@ LastBlockSize := Size - (UInt64(FullBlocks) * State.BlockSize);
 HelpBlocks := Ceil((LastBlockSize + 1) / State.BlockSize);
 HelpBlocksBuff := AllocMem(HelpBlocks * State.BlockSize);
 try
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
   Move(Pointer(PtrUInt(@Buffer) + (FullBlocks * State.BlockSize))^,HelpBlocksBuff^,LastBlockSize);
   case State.HashSize of
     Keccak224..Keccak_b:  PUInt8(PtrUInt(HelpBlocksBuff) + LastBlockSize)^ := $01;
@@ -409,6 +483,7 @@ try
   end;
   PUInt8(PtrUInt(HelpBlocksBuff) + (UInt64(HelpBlocks) * State.BlockSize) - 1)^ := PUInt8(PtrUInt(HelpBlocksBuff) + (UInt64(HelpBlocks) * State.BlockSize) - 1)^ xor $80;
   BufferSHA3(State,HelpBlocksBuff^,HelpBlocks * State.BlockSize);
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 finally
   FreeMem(HelpBlocksBuff,HelpBlocks * State.BlockSize);
 end;
@@ -529,7 +604,9 @@ with PSHA3Context_Internal(Context)^ do
             BufferSHA3(HashState,TransferBuffer,HashState.BlockSize);
             RemainingSize := Size - (HashState.BlockSize - TransferSize);
             TransferSize := 0;
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
             SHA3_Update(Context,Pointer(PtrUInt(@Buffer) + (Size - RemainingSize))^,RemainingSize);
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end
         else
           begin
@@ -544,7 +621,9 @@ with PSHA3Context_Internal(Context)^ do
         If (FullBlocks * HashState.BlockSize) < Size then
           begin
             TransferSize := Size - (UInt64(FullBlocks) * HashState.BlockSize);
+          {$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
             Move(Pointer(PtrUInt(@Buffer) + (Size - TransferSize))^,TransferBuffer,TransferSize);
+          {$IFDEF FPCDWM}{$POP}{$ENDIF}
           end;
       end;
   end;

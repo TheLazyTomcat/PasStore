@@ -55,7 +55,8 @@ uses
   BinaryStreaming;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 5024 OFF} // Parameter "$1" not used
+  {$DEFINE FPCDWM}
+  {$DEFINE W5024:={$WARN 5024 OFF}} // Parameter "$1" not used
 {$ENDIF}
 
 Function TfGeneratorForm.GeneratorPrompt(out Output: String): Boolean;
@@ -71,21 +72,26 @@ end;
 
 //==============================================================================
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfGeneratorForm.FormShow(Sender: TObject);
 begin
 leSeed.SetFocus;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+     
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfGeneratorForm.cbMethodChange(Sender: TObject);
 begin
 seLength.Enabled := cbMethod.ItemIndex in [15,20..22];
 lblLength.Enabled := seLength.Enabled;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+                  
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfGeneratorForm.btnGenerateClick(Sender: TObject);
 var
   Seed:     UTF8String;
@@ -195,9 +201,11 @@ case cbMethod.ItemIndex of
       end;
 end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+                          
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfGeneratorForm.btnAcceptClick(Sender: TObject);
 begin
 If leResult.Text <> '' then
@@ -207,12 +215,15 @@ If leResult.Text <> '' then
   end
 else MessageDlg('Resulting password cannot be empty.',mtError,[mbOk],0);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+                  
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfGeneratorForm.btnCancelClick(Sender: TObject);
 begin
 Close;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 end.

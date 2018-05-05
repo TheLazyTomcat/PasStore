@@ -11,12 +11,13 @@
 
     Utility classes for data (de)compression build on zlib library.
 
-  ©František Milt 2018-04-05
+  ©František Milt 2018-05-03
 
-  Version 1.0.2
+  Version 1.0.3
 
   Dependencies:
     AuxTypes     - github.com/ncs-sniper/Lib.AuxTypes
+    AuxClasses   - github.com/ncs-sniper/Lib.AuxClasses
     MemoryBuffer - github.com/ncs-sniper/Lib.MemoryBuffer
   * StrRect      - github.com/ncs-sniper/Lib.StrRect    
     ZLib         - github.com/ncs-sniper/Bnd.ZLib
@@ -30,6 +31,7 @@ unit ZLibUtils;
 {$IFDEF FPC}
   {$MODE Delphi}
   {$DEFINE FPC_DisableWarns}
+  {$MACRO ON}
 {$ENDIF}
 
 {
@@ -46,11 +48,12 @@ interface
 
 uses
   SysUtils, Classes,
-  AuxTypes, MemoryBuffer,
+  AuxTypes, AuxClasses, MemoryBuffer,
   ZLibCommon;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 3031 OFF} // Values in enumeration types have to be ascending
+  {$DEFINE FPCDWM}
+  {$DEFINE W3031:={$WARN 3031 OFF}} // Values in enumeration types have to be ascending
 {$ENDIF}
 
 {===============================================================================
@@ -61,7 +64,9 @@ type
     zclNoCompression   = Z_NO_COMPRESSION,
     zclBestSpeed       = Z_BEST_SPEED,
     zclBestCompression = Z_BEST_COMPRESSION,
+  {$IFDEF FPCDWM}{$PUSH}W3031{$ENDIF}
     zclDefault         = Z_DEFAULT_COMPRESSION,
+  {$IFDEF FPCDWM}{$POP}{$ENDIF}
     zclLevel0          = 0,
     zclLevel1          = 1,
     zclLevel2          = 2,
@@ -75,7 +80,9 @@ type
 
   TZMemLevel = (
     zmlDefault = DEF_MEM_LEVEL,
+  {$IFDEF FPCDWM}{$PUSH}W3031{$ENDIF}
     zmlLevel1  = 1,
+  {$IFDEF FPCDWM}{$POP}{$ENDIF}
     zmlLevel2  = 2,
     zmlLevel3  = 3,
     zmlLevel4  = 4,
@@ -90,9 +97,13 @@ type
     zsHuffman  = Z_HUFFMAN_ONLY,
     zsRLE      = Z_RLE,
     zsFixed    = Z_FIXED,
+  {$IFDEF FPCDWM}{$PUSH}W3031{$ENDIF}
     zsDefault  = Z_DEFAULT_STRATEGY);
+  {$IFDEF FPCDWM}{$POP}{$ENDIF}
 
+{$IFDEF FPCDWM}{$PUSH}W3031{$ENDIF}
   TZStreamType = (zstZLib,zstGZip,zstRaw,zstDefault = zstZLib);
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
   EZError = class(Exception)
   public
@@ -108,6 +119,7 @@ const
   PROC_BUFFSIZE = 1024 * 1024;  {1MiB}
   STRM_BUFFSIZE = 1024 * 1024;  {1MiB}
   BUFF_BUFFSIZE = 1024 * 1024;  {1MiB}
+  INTR_BUFFSIZE = 1024 * 1024;  {1MiB}
 
 {-------------------------------------------------------------------------------
 ================================================================================
@@ -122,7 +134,7 @@ type
 {===============================================================================
     TZProcessor - class declaration
 ===============================================================================}
-  TZProcessor = class(TObject)
+  TZProcessor = class(TCustomObject)
   protected
     fZLibState:         z_stream;
     fOutBuffer:         TMemoryBuffer;
@@ -246,6 +258,7 @@ type
     Function Read(var Buffer; Count: LongInt): LongInt; override;
     Function Write(const Buffer; Count: LongInt): LongInt; override;
     Function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    Function CompressFrom(Source: TStream): Int64; virtual;
     procedure Final; override;
     property CompressionLevel: TZCompressionLevel read fCompressionLevel;
     property MemLevel: TZMemLevel read fMemLevel;
@@ -273,6 +286,7 @@ type
     Function Read(var Buffer; Count: LongInt): LongInt; override;
     Function Write(const Buffer; Count: LongInt): LongInt; override;
     Function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    Function ExtractTo(Destination: TStream): Int64; virtual;
     procedure Final; override;
     property WindowBits: int read fWindowBits;
   end;
@@ -288,7 +302,7 @@ type
 {===============================================================================
     TZCustomBuffer - class declaration
 ===============================================================================}
-  TZCustomBuffer = class
+  TZCustomBuffer = class(TCustomObject)
   protected
     fFreeResult:        Boolean;
     fSource:            TMemoryBuffer;
@@ -392,9 +406,10 @@ uses
 {$ENDIF}
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 4055 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 4056 OFF} // Conversion between ordinals and pointers is not portable
-  {$WARN 5024 OFF} // Parameter "$1" not used
+  {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W4056:={$WARN 4056 OFF}} // Conversion between ordinals and pointers is not portable
+  {$DEFINE W5024:={$WARN 5024 OFF}} // Parameter "$1" not used
 {$ENDIF}
 
 {===============================================================================
@@ -784,6 +799,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 Function TZCompressionStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
 {$IFDEF FPC}
@@ -791,6 +807,7 @@ Result := 0;
 {$ENDIf}
 raise EZCompressionError.Create('TZCompressionStream.Read: ' + ZInvalidOp);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -825,6 +842,25 @@ If (Origin = soCurrent) and (Offset = 0) then
   Result := fTotalUncompressed
 else
   raise EZCompressionError.Create('TZCompressionStream.Seek: ' + ZInvalidOp);
+end;
+
+//------------------------------------------------------------------------------
+
+Function TZCompressionStream.CompressFrom(Source: TStream): Int64;
+var
+  Buffer: TMemoryBuffer;
+begin
+Result := 0;
+GetBuffer(Buffer,INTR_BUFFSIZE);
+try
+  repeat
+    Buffer.Data := Source.Read(Buffer.Memory^,INTR_BUFFSIZE);
+    WriteBuffer(Buffer.Memory^,Buffer.Data);
+    Inc(Result,Buffer.Data);
+  until Buffer.Data < INTR_BUFFSIZE;
+finally
+  FreeBuffer(Buffer);
+end;
 end;
 
 //------------------------------------------------------------------------------
@@ -901,7 +937,9 @@ If Count > 0 then
     repeat
       If (fBuffer.Data > 0) and (fTransferOff > 0) then
         begin
+        {$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
           fZLibState.next_in := Pointer(PtrUInt(fBuffer.Memory) + fTransferOff);
+        {$IFDEF FPCDWM}{$POP}{$ENDIF}
           fZLibState.avail_in := uInt(PtrUInt(fBuffer.Data) - fTransferOff);
         end
       else
@@ -927,6 +965,7 @@ end;
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 Function TZDecompressionStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
 {$IFDEF FPC}
@@ -934,6 +973,7 @@ Result := 0;
 {$ENDIf}
 raise EZCompressionError.Create('TZDecompressionStream.Write: ' + ZInvalidOp);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -945,6 +985,25 @@ else If (Origin = soBeginning) and (Offset = 0) and (fSource.Position = 0) then
   Result := 0
 else
   raise EZCompressionError.Create('TZDecompressionStream.Seek: ' + ZInvalidOp);
+end;
+
+//------------------------------------------------------------------------------
+
+Function TZDecompressionStream.ExtractTo(Destination: TStream): Int64;
+var
+  Buffer: TMemoryBuffer;
+begin
+Result := 0;
+GetBuffer(Buffer,INTR_BUFFSIZE);
+try
+  repeat
+    Buffer.Data := Read(Buffer.Memory^,INTR_BUFFSIZE);
+    Destination.WriteBuffer(Buffer.Memory^,Buffer.Data);
+    Inc(Result,Buffer.Data);
+  until Buffer.Data < INTR_BUFFSIZE;
+finally
+  FreeBuffer(Buffer);
+end;
 end;
 
 //------------------------------------------------------------------------------
@@ -1031,6 +1090,7 @@ end;
     TZCompressionBuffer - protected methods
 -------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056 W5024{$ENDIF}
 procedure TZCompressionBuffer.ProcessorHandler(Sender: TObject; Data: Pointer; Size: TMemSize);
 begin
 while (fTotalCompressed + Size) > fResult.Size do
@@ -1038,6 +1098,7 @@ while (fTotalCompressed + Size) > fResult.Size do
 Move(Data^,Pointer(PtrUInt(fResult.Memory) + fTotalCompressed)^,Size);
 Inc(fTotalCompressed,Size);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -1073,7 +1134,9 @@ If (fTotalUncompressed + BUFF_BUFFSIZE) > fSource.Size then
   Size := fSource.Size - TMemSize(fTotalUncompressed)
 else
   Size := BUFF_BUFFSIZE;
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
 Processed := fCompressor.Update(Pointer(PtrUInt(fSource.Memory) + fTotalUncompressed)^,Size);
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 Inc(fTotalUncompressed,Processed);
 Result := (Processed >= Size) and (TMemSize(fTotalUncompressed) < fSource.Size);
 end;
@@ -1177,6 +1240,7 @@ end;
     TZDecompressionBuffer - protected methods
 -------------------------------------------------------------------------------}
 
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056 W5024{$ENDIF}
 procedure TZDecompressionBuffer.ProcessorHandler(Sender: TObject; Data: Pointer; Size: TMemSize);
 begin
 while (fTotalUncompressed + Size) > fResult.Size do
@@ -1184,6 +1248,7 @@ while (fTotalUncompressed + Size) > fResult.Size do
 Move(Data^,Pointer(PtrUInt(fResult.Memory) + fTotalUncompressed)^,Size);
 Inc(fTotalUncompressed,Size);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -1219,7 +1284,9 @@ If (fTotalCompressed + BUFF_BUFFSIZE) > fSource.Size then
   Size := fSource.Size - TMemSize(fTotalCompressed)
 else
   Size := BUFF_BUFFSIZE;
+{$IFDEF FPCDWM}{$PUSH}W4055 W4056{$ENDIF}
 Processed := fDecompressor.Update(Pointer(PtrUInt(fSource.Memory) + fTotalCompressed)^,Size);
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 Inc(fTotalCompressed,Processed);
 Result := (Processed >= Size) and (TMemSize(fTotalCompressed) < fSource.Size);
 end;

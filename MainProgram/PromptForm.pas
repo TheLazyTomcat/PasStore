@@ -49,7 +49,8 @@ uses
   GeneratorForm;
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 5024 OFF} // Parameter "$1" not used
+  {$DEFINE FPCDWM}
+  {$DEFINE W5024:={$WARN 5024 OFF}} // Parameter "$1" not used
 {$ENDIF}
 
 Function TfPromptForm.ShowPrompt(const FormCaption, Prompt, DefaultText: String; out Output: String; Password: Boolean = False): Boolean;
@@ -71,14 +72,17 @@ end;
 
 //==============================================================================
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.FormShow(Sender: TObject);
 begin
 lePrompt.SetFocus;
 cbShowPassword.OnClick(nil);
-end;
+end; 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.lePromptKeyPress(Sender: TObject; var Key: Char);
 begin
 If Key = #13 then
@@ -86,10 +90,12 @@ If Key = #13 then
     btnAccept.OnClick(nil);
     Key := #0;
   end;
-end;
+end; 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+             
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.cbShowPasswordClick(Sender: TObject);
 begin
 If cbShowPassword.Checked then
@@ -97,9 +103,11 @@ If cbShowPassword.Checked then
 else
   lePrompt.PasswordChar := '*';
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+            
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.btnGeneratorClick(Sender: TObject);
 var
   GeneratedText:  String;
@@ -107,9 +115,11 @@ begin
 If fGeneratorForm.GeneratorPrompt(GeneratedText) then
   lePrompt.Text := GeneratedText;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+           
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.btnAcceptClick(Sender: TObject);
 begin
 If lePrompt.Text <> '' then
@@ -118,13 +128,16 @@ If lePrompt.Text <> '' then
     Close;
   end
 else MessageDlg('Empty text not allowed.',mtError,[mbOk],0)
-end;
+end; 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+              
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfPromptForm.btnCancelClick(Sender: TObject);
 begin
 Close;
-end;
+end; 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 end.

@@ -126,7 +126,8 @@ uses
 {$ENDIF};
 
 {$IFDEF FPC_DisableWarns}
-  {$WARN 5024 OFF} // Parameter "$1" not used
+  {$DEFINE FPCDWM}
+  {$DEFINE W5024:={$WARN 5024 OFF}} // Parameter "$1" not used
 {$ENDIF}
 
 const
@@ -136,12 +137,14 @@ const
   ANIM_EMPTYSEARCH  = 3;
   ANIM_NOMOREFOUND  = 4;
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.EntryFrameActReqHandler(Sender: TObject; Action: Integer);
 begin
 case Action of
   EF_ACTREQ_RENAME: pm_entry_Rename.OnClick(nil);
 end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -218,6 +221,7 @@ end;
 
 //==============================================================================
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.FormCreate(Sender: TObject);
 begin
 sbStatusBar.DoubleBuffered := True;
@@ -247,9 +251,11 @@ end;
 pm_entry_MoveUp.ShortCut := ShortCut(VK_UP,[ssShift]);
 pm_entry_MoveDown.ShortCut := ShortCut(VK_DOWN,[ssShift]);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.FormShow(Sender: TObject);
 var
   i:  Integer;
@@ -262,9 +268,11 @@ else
   lbEntries.ItemIndex := -1;
 lbEntries.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.FormDestroy(Sender: TObject);
 begin
 If Unlocked then
@@ -274,9 +282,11 @@ If Unlocked then
   end;
 Manager.Free;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.lbEntriesClick(Sender: TObject);
 begin
 Manager.CurrentEntryIdx := lbEntries.ItemIndex;
@@ -285,9 +295,11 @@ If lbEntries.ItemIndex >= 0 then
 else
   sbStatusBar.Panels[0].Text := 'No entry';
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.lbEntriesMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Index:  Integer;
@@ -302,9 +314,11 @@ If Button = mbRight then
       end;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pmEntriesPopup(Sender: TObject);
 begin
 pm_entry_Remove.Enabled := lbEntries.ItemIndex >= 0;
@@ -314,9 +328,11 @@ pm_entry_MoveDown.Enabled := (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (
 pm_entry_SortFwd.Enabled := lbEntries.Count > 1;
 pm_entry_SortRev.Enabled := lbEntries.Count > 1;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_AddClick(Sender: TObject);
 var
   OutStr: String;
@@ -329,9 +345,11 @@ If fPromptForm.ShowPrompt('Add new entry','Entry name:','',OutStr) then
     lbEntries.OnClick(nil);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_RemoveClick(Sender: TObject);
 var
   OldIndex: Integer;
@@ -356,9 +374,11 @@ If lbEntries.ItemIndex >= 0 then
       lbEntries.OnClick(nil);
     end;
 end;
- 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_RenameClick(Sender: TObject);
 var
   OutStr: String;
@@ -372,9 +392,11 @@ If lbEntries.ItemIndex >= 0 then
       frmEntryFrame.lblName.Caption := OutStr;
     end;
 end;
- 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_MoveUpClick(Sender: TObject);
 var
   OldIndex: Integer;
@@ -389,9 +411,11 @@ If lbEntries.ItemIndex > 0 then
     lbEntries.OnClick(nil);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_MoveDownClick(Sender: TObject);
 var
   OldIndex: Integer;
@@ -406,9 +430,11 @@ If (lbEntries.ItemIndex < Pred(lbEntries.Count)) and (lbEntries.Count > 0) then
     lbEntries.OnClick(nil);
   end;
 end; 
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_SortFwdClick(Sender: TObject);
 var
   i:  Integer;
@@ -423,9 +449,11 @@ If lbEntries.Count > 1 then
     lbEntries.OnClick(nil);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_SortRevClick(Sender: TObject);
 var
   i:  Integer;
@@ -440,18 +468,22 @@ If lbEntries.Count > 1 then
     lbEntries.OnClick(nil);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_SearchClick(Sender: TObject);
 begin
 leSearchFor.SetFocus;
 leSearchFor.SelectAll;
 RunAnimation(ANIM_SEARCHING);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_FindPrevClick(Sender: TObject);
 var
   Index:  Integer;
@@ -473,9 +505,11 @@ If leSearchFor.Text <> '' then
   end
 else RunAnimation(ANIM_EMPTYSEARCH);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_FindNextClick(Sender: TObject);
 var
   Index:  Integer;
@@ -497,9 +531,11 @@ If leSearchFor.Text <> '' then
   end
 else RunAnimation(ANIM_EMPTYSEARCH);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_SaveNowClick(Sender: TObject);
 var
   CurrentIndex: Integer;
@@ -513,9 +549,11 @@ finally
   Manager.CurrentEntryIdx := CurrentIndex;
 end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_ChangePswdClick(Sender: TObject);
 var
   OutStr: String;
@@ -523,9 +561,11 @@ begin
 If fPromptForm.ShowPrompt('Master password','New master password:',Manager.MasterPassword,OutStr,True) then
   Manager.MasterPassword := OutStr;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.pm_entry_CloseNoSaveClick(Sender: TObject);
 begin
 If MessageDlg('Are you sure you want to close PasStore without saving?',
@@ -535,9 +575,11 @@ If MessageDlg('Are you sure you want to close PasStore without saving?',
     Close;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+  
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.leSearchForKeyPress(Sender: TObject; var Key: Char);
 begin
 If Key = #13 then
@@ -546,23 +588,29 @@ If Key = #13 then
     Key := #0;
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.btnFindPrevClick(Sender: TObject);
 begin
 pm_entry_FindPrev.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.btnFindNextClick(Sender: TObject);
 begin
 pm_entry_FindNext.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.actSearchShortcutExecute(Sender: TObject);
 begin
 If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
@@ -572,41 +620,51 @@ If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
     RunAnimation(ANIM_SEARCHING);
   end;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.actFindPrevExecute(Sender: TObject);
 begin
 If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
   pm_entry_FindPrev.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.actFindNextExecute(Sender: TObject);
 begin
 If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
   pm_entry_FindNext.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.actSaveExecute(Sender: TObject);
 begin
 If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
   pm_entry_SaveNow.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+  
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.actChangePswdExecute(Sender: TObject);
 begin
 If fMainForm.Visible and fMainForm.Active and not lbEntries.Focused then
   pm_entry_ChangePswd.OnClick(nil);
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 //------------------------------------------------------------------------------
-
+ 
+{$IFDEF FPCDWM}{$PUSH}W5024{$ENDIF}
 procedure TfMainForm.tmrAnimTimerTimer(Sender: TObject);
 var
   i,Counter:  Integer;
@@ -636,5 +694,6 @@ For i := Low(AnimCounters) to High(AnimCounters) do
   Counter := Counter + AnimCounters[i];
 tmrAnimTimer.Enabled := Counter > 0;
 end;
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 
 end.
